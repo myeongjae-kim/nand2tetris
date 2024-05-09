@@ -1,5 +1,5 @@
 const lexicalElements = {
-  KEYWORD: [
+  keyword: [
     'class',
     'method',
     'function',
@@ -22,7 +22,7 @@ const lexicalElements = {
     'null',
     'this',
   ],
-  SYMBOL: [
+  symbol: [
     '{',
     '}',
     '(',
@@ -43,16 +43,16 @@ const lexicalElements = {
     '=',
     '~',
   ],
-  IDENTIFIER: (str: string) => /^[a-zA-Z_]\w*$/.test(str),
-  INT_CONST: (str: string) => /^\d+$/.test(str),
-  STRING_CONST: (str: string) => /^".*"$/.test(str),
+  identifier: (str: string) => /^[a-zA-Z_]\w*$/.test(str),
+  integerConstant: (str: string) => /^\d+$/.test(str),
+  stringConstant: (str: string) => /^".*"$/.test(str),
 } as const;
 
-const symbolSet = new Set(lexicalElements.SYMBOL);
+const symbolSet = new Set(lexicalElements.symbol);
 
 export type JackTokenType = keyof typeof lexicalElements;
-export type JackKeyword = (typeof lexicalElements.KEYWORD)[number];
-type JackSymbol = (typeof lexicalElements.SYMBOL)[number];
+export type JackKeyword = (typeof lexicalElements.keyword)[number];
+type JackSymbol = (typeof lexicalElements.symbol)[number];
 
 // 묻지말고 시키라는 객체지향 원칙에 어긋나지만.. 일단 책에 선언되어있는 인터페이스 그대로 구현한다
 export type JackTokenizer = {
@@ -182,6 +182,31 @@ export const jackTokenizer = (readLine: () => string | null): JackTokenizer => {
         currentToken = currentToken.substring(0, i);
       }
     }
+
+    // if token starts with ", split it and add the string to new current line
+    if (currentToken.startsWith('"')) {
+      const index = currentToken.indexOf('"', 1);
+      if (index !== -1) {
+        const newCurrentToken = currentToken.substring(0, index + 1);
+        const newCurrentLine = currentToken.substring(index + 1) + ' ' + currentLine;
+
+        currentToken = newCurrentToken;
+        currentLine = newCurrentLine.trim();
+        return;
+      }
+
+      const indexFromCurrentLine = currentLine.indexOf('"');
+      if (indexFromCurrentLine === -1) {
+        throw Error('String constant not closed');
+      }
+      const newCurrentToken =
+        currentToken + ' ' + currentLine.substring(0, indexFromCurrentLine + 1);
+      const newCurrentLine = currentLine.substring(indexFromCurrentLine + 1).trim();
+
+      currentToken = newCurrentToken;
+      currentLine = newCurrentLine;
+      return;
+    }
   };
 
   const assertThatCurrentTokenIsExistent = (): void => {
@@ -197,24 +222,24 @@ export const jackTokenizer = (readLine: () => string | null): JackTokenizer => {
     tokenType: (): JackTokenType => {
       assertThatCurrentTokenIsExistent();
 
-      if (lexicalElements.KEYWORD.includes(currentToken as JackKeyword)) {
-        return 'KEYWORD';
+      if (lexicalElements.keyword.includes(currentToken as JackKeyword)) {
+        return 'keyword';
       }
 
-      if (lexicalElements.SYMBOL.includes(currentToken as JackSymbol)) {
-        return 'SYMBOL';
+      if (lexicalElements.symbol.includes(currentToken as JackSymbol)) {
+        return 'symbol';
       }
 
-      if (lexicalElements.IDENTIFIER(currentToken)) {
-        return 'IDENTIFIER';
+      if (lexicalElements.identifier(currentToken)) {
+        return 'identifier';
       }
 
-      if (lexicalElements.INT_CONST(currentToken)) {
-        return 'INT_CONST';
+      if (lexicalElements.integerConstant(currentToken)) {
+        return 'integerConstant';
       }
 
-      if (lexicalElements.STRING_CONST(currentToken)) {
-        return 'STRING_CONST';
+      if (lexicalElements.stringConstant(currentToken)) {
+        return 'stringConstant';
       }
 
       throw Error(`Unknown token: ${currentToken}`);
@@ -223,27 +248,36 @@ export const jackTokenizer = (readLine: () => string | null): JackTokenizer => {
     keyword: (): JackKeyword => {
       assertThatCurrentTokenIsExistent();
 
-      if (!lexicalElements.KEYWORD.includes(currentToken as JackKeyword)) {
+      if (!lexicalElements.keyword.includes(currentToken as JackKeyword)) {
         throw Error(`Not a keyword: ${currentToken}`);
       }
 
       return currentToken as JackKeyword;
     },
 
-    symbol: (): JackSymbol => {
+    symbol: (): string => {
       assertThatCurrentTokenIsExistent();
 
-      if (!lexicalElements.SYMBOL.includes(currentToken as JackSymbol)) {
+      if (!lexicalElements.symbol.includes(currentToken as JackSymbol)) {
         throw Error(`Not a symbol: ${currentToken}`);
       }
 
-      return currentToken as JackSymbol;
+      switch (currentToken) {
+        case '<':
+          return '&lt;';
+        case '>':
+          return '&gt;';
+        case '&':
+          return '&amp;';
+        default:
+          return currentToken;
+      }
     },
 
     identifier: (): string => {
       assertThatCurrentTokenIsExistent();
 
-      if (!lexicalElements.IDENTIFIER(currentToken)) {
+      if (!lexicalElements.identifier(currentToken)) {
         throw Error(`Not an identifier: ${currentToken}`);
       }
 
@@ -253,7 +287,7 @@ export const jackTokenizer = (readLine: () => string | null): JackTokenizer => {
     intVal: (): number => {
       assertThatCurrentTokenIsExistent();
 
-      if (!lexicalElements.INT_CONST(currentToken)) {
+      if (!lexicalElements.integerConstant(currentToken)) {
         throw Error(`Not an integer constant: ${currentToken}`);
       }
 
@@ -263,7 +297,7 @@ export const jackTokenizer = (readLine: () => string | null): JackTokenizer => {
     stringVal: (): string => {
       assertThatCurrentTokenIsExistent();
 
-      if (!lexicalElements.STRING_CONST(currentToken)) {
+      if (!lexicalElements.stringConstant(currentToken)) {
         throw Error(`Not a string constant: ${currentToken}`);
       }
 

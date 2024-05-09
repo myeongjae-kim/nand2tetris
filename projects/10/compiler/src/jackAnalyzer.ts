@@ -46,11 +46,23 @@ const handleSingleFile = async (jackFile: string) => {
       break;
     }
 
-    xml = `${xml}<${tokenizer
-      .tokenType()
-      .toLocaleLowerCase()}> ${tokenizer.currentToken()} </${tokenizer
-      .tokenType()
-      .toLocaleLowerCase()}>\n`;
+    const tokenValue = (() => {
+      switch (tokenizer.tokenType()) {
+        case 'keyword':
+          return tokenizer.keyword();
+        case 'symbol':
+          return tokenizer.symbol();
+        case 'identifier':
+          return tokenizer.identifier();
+        case 'integerConstant':
+          return tokenizer.intVal();
+        case 'stringConstant':
+          return tokenizer.stringVal();
+        default:
+          throw Error(`Unknown token type: ${tokenizer.tokenType()}`);
+      }
+    })();
+    xml = `${xml}<${tokenizer.tokenType()}> ${tokenValue} </${tokenizer.tokenType()}>\n`;
   }
 
   xml = `${xml}</tokens>`;
