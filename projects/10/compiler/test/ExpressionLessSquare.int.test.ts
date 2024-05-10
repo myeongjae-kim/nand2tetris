@@ -3,6 +3,59 @@ import { jackAnalyzer } from '../src/jackAnalyzer';
 import { fileTestTemplate } from './testHelper';
 import { readFilePromise } from '../src/readFilePromise';
 
+const indentation = (xml: string, indentLevel: number) => ' '.repeat(indentLevel * 2) + xml;
+
+const parseClassTokens = (xmls: string[], indentLevel: number, result: string[]): string[] => {
+  if (xmls.length === 0) {
+    throw Error('Invalid XML.');
+  }
+  result.push(indentation('<class>', indentLevel - 1));
+
+  const keywordXml = xmls[0];
+  const identifierXml = xmls[1];
+  const curlyBraceStartXml = xmls[2];
+
+  // indent 붙여서 result에 추가
+  result.push(indentation(keywordXml, indentLevel));
+  result.push(indentation(identifierXml, indentLevel));
+  result.push(indentation(curlyBraceStartXml, indentLevel));
+
+  const nextXml = xmls[3];
+
+  // TODO: keyword 처리하는 부분 함수로 만들기
+  if (nextXml) {
+    const keyword = xmls[0].replace('<keyword>', '').replace('</keyword>', '').trim();
+
+    if (keyword === 'static') {
+      // result = parseClassVarDec(xmls, indentLevel, result);
+    }
+  }
+
+  result.push(indentation('</class>', indentLevel - 1));
+
+  return result;
+};
+
+const parseTokens = (xmls: string[], indentLevel = 0, result = []): string[] => {
+  if (xmls.length === 0) {
+    return result;
+  }
+
+  if (xmls[0] === '<tokens>') {
+    return parseTokens(xmls.slice(1), indentLevel, result);
+  }
+
+  if (xmls[0].startsWith('<keyword>')) {
+    const keyword = xmls[0].replace('<keyword>', '').replace('</keyword>', '').trim();
+
+    if (keyword === 'class') {
+      return parseClassTokens(xmls, indentLevel + 1, result);
+    }
+  }
+
+  return result;
+};
+
 describe('ExpressionLessSquare', () => {
   it('should compile Main.jack', async () => {
     const jackPath = './test/res/ExpressionLessSquare/Main.jack';
@@ -18,6 +71,8 @@ describe('ExpressionLessSquare', () => {
       ]);
 
       expect(xml).toBe(expectedXml.replace(/\r/g, '').trim());
+
+      console.log(parseTokens(xml.split('\n').map((it) => it.trim())).join('\n'));
     }, xmlPath);
   });
 
