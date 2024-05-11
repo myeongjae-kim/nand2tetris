@@ -7,6 +7,11 @@ type SingleLineXml = {
   value: string;
 };
 
+type CompileResult = {
+  cursorProcessed: number;
+  result: string[];
+};
+
 const parseSingleLineXml = (xml: string): SingleLineXml => {
   const tagStart = xml.indexOf('<');
   const tagEnd = xml.indexOf('>');
@@ -32,7 +37,7 @@ const compile = (xmls: string[], indentLevel = 0, result = []): string[] => {
 
   const firstLine = parseSingleLineXml(xmls[0]);
   if (firstLine.tag === 'tokens') {
-    return compile(xmls.slice(1), indentLevel, result);
+    return compile(xmls.slice(1, -1), indentLevel, result);
   }
 
   if (firstLine.tag === 'keyword') {
@@ -50,27 +55,164 @@ const compileClass = (xmls: string[], indentLevel: number, result: string[]): st
   }
   result.push(indentation('<class>', indentLevel - 1));
 
-  const keywordXml = xmls[0];
-  const identifierXml = xmls[1];
-  const curlyBraceStartXml = xmls[2];
+  let cursor = 0;
+  const keywordXml = xmls[cursor++];
+  const identifierXml = xmls[cursor++];
+  const curlyBraceStartXml = xmls[cursor++];
 
   // indent 붙여서 result에 추가
   result.push(indentation(keywordXml, indentLevel));
   result.push(indentation(identifierXml, indentLevel));
   result.push(indentation(curlyBraceStartXml, indentLevel));
 
-  const nextXml = xmls[3];
+  const _compileClass = (
+    _xmls: string[],
+    _indentLevel: number,
+    _result: string[],
+  ): CompileResult => {
+    let cursor = 0;
+    let nextXml = _xmls[cursor];
 
-  // TODO: keyword 처리하는 부분 함수로 만들기
-  if (nextXml) {
-    const keyword = xmls[0].replace('<keyword>', '').replace('</keyword>', '').trim();
-
-    if (keyword === 'static') {
-      // result = parseClassVarDec(xmls, indentLevel, result);
+    if (!nextXml) {
+      return { cursorProcessed: cursor, result: _result };
     }
-  }
+
+    const { value } = parseSingleLineXml(nextXml);
+
+    if (['static', 'field'].includes(value)) {
+      cursor += compileClassVarDec(_xmls.slice(cursor), _indentLevel + 1, _result).cursorProcessed;
+    }
+
+    if (['constructor', 'function', 'method'].includes(value)) {
+      cursor += compileSubroutineDec(
+        _xmls.slice(cursor),
+        _indentLevel + 1,
+        _result,
+      ).cursorProcessed;
+    }
+
+    if (value === '{') {
+      // TODO: handle subroutine body in compileSubroutineDec
+      return { cursorProcessed: cursor, result: _result };
+    }
+
+    nextXml = _xmls[cursor];
+    if (!nextXml) {
+      return { cursorProcessed: cursor, result: _result };
+    }
+
+    const { cursorProcessed, result: resultToReturn } = _compileClass(
+      _xmls.slice(cursor),
+      _indentLevel,
+      _result,
+    );
+
+    return {
+      cursorProcessed: cursor + cursorProcessed,
+      result: resultToReturn,
+    };
+  };
+
+  _compileClass(xmls.slice(cursor), indentLevel, result);
 
   result.push(indentation('</class>', indentLevel - 1));
 
   return result;
+};
+
+const handleVarDecs = (xmls: string[], indentLevel: number, result: string[]): CompileResult => {
+  let cursor = 0;
+  const staticOrFieldXml = xmls[cursor++];
+  const typeXml = xmls[cursor++];
+  const varNameXml = xmls[cursor++];
+  const commaOrSemicolonXml = xmls[cursor++];
+
+  result.push(indentation(staticOrFieldXml, indentLevel));
+  result.push(indentation(typeXml, indentLevel));
+  result.push(indentation(varNameXml, indentLevel));
+  result.push(indentation(commaOrSemicolonXml, indentLevel));
+
+  const commaOrSemicolonParsed = parseSingleLineXml(commaOrSemicolonXml);
+  if (commaOrSemicolonParsed.tag !== 'symbol') {
+    throw Error('Invalid XML.');
+  }
+
+  if (commaOrSemicolonParsed.value === ',') {
+    const { cursorProcessed, result: resultToReturn } = handleVarDecs(
+      xmls.slice(4),
+      indentLevel,
+      result,
+    );
+
+    return {
+      cursorProcessed: cursor + cursorProcessed,
+      result: resultToReturn,
+    };
+  }
+
+  return {
+    cursorProcessed: cursor,
+    result,
+  };
+};
+
+const compileClassVarDec = (
+  xmls: string[],
+  indentLevel: number,
+  result: string[],
+): CompileResult => {
+  result.push(indentation('<classVarDec>', indentLevel - 1));
+  const { cursorProcessed } = handleVarDecs(xmls, indentLevel, result);
+  result.push(indentation('</classVarDec>', indentLevel - 1));
+
+  return { cursorProcessed, result };
+};
+
+const handleParameterList = (
+  xmls: string[],
+  indentLevel: number,
+  result: string[],
+): {
+  cursorProcessed: number;
+  result: string[];
+} => {
+  let cursor = 0;
+
+  const parameterListStartSymbolXml = xmls[cursor++];
+  // TODO: parametsrs
+  const parameterListEndSymbolXml = xmls[cursor++];
+
+  result.push(indentation(parameterListStartSymbolXml, indentLevel - 1));
+  result.push(indentation('<parameterList>', indentLevel - 1));
+
+  result.push(indentation('</parameterList>', indentLevel - 1));
+  result.push(indentation(parameterListEndSymbolXml, indentLevel - 1));
+
+  return {
+    cursorProcessed: cursor,
+    result,
+  };
+};
+
+const compileSubroutineDec = (
+  xmls: string[],
+  indentLevel: number,
+  result: string[],
+): CompileResult => {
+  result.push(indentation('<subroutineDec>', indentLevel - 1));
+
+  let cursor = 0;
+  const keywordXml = xmls[cursor++];
+  const typeXml = xmls[cursor++];
+  const subroutineNameXml = xmls[cursor++];
+
+  result.push(indentation(keywordXml, indentLevel));
+  result.push(indentation(typeXml, indentLevel));
+  result.push(indentation(subroutineNameXml, indentLevel));
+
+  cursor += handleParameterList(xmls.slice(cursor), indentLevel + 1, result).cursorProcessed;
+
+  result.push(indentation('</subroutineDec>', indentLevel - 1));
+
+  return { cursorProcessed: cursor, result };
 };
