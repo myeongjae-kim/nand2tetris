@@ -60,7 +60,7 @@ describe('ExpressionLessSquare', () => {
   it('should compile Main.jack', async () => {
     const jackPath = './test/res/ExpressionLessSquare/Main.jack';
     const xmlPath = './test/res/ExpressionLessSquare/Main.xml';
-    const expectedXmlPath = './test/res/ExpressionLessSquare/MainT.xml';
+    const expectedXmlPath = './test/res/expected/ExpressionLessSquare/MainT.xml';
 
     await fileTestTemplate(async () => {
       await jackAnalyzer(jackPath);
@@ -79,7 +79,7 @@ describe('ExpressionLessSquare', () => {
   it('should compile Square.jack', async () => {
     const jackPath = './test/res/ExpressionLessSquare/Square.jack';
     const xmlPath = './test/res/ExpressionLessSquare/Square.xml';
-    const expectedXmlPath = './test/res/ExpressionLessSquare/SquareT.xml';
+    const expectedXmlPath = './test/res/expected/ExpressionLessSquare/SquareT.xml';
 
     await fileTestTemplate(async () => {
       await jackAnalyzer(jackPath);
@@ -96,7 +96,7 @@ describe('ExpressionLessSquare', () => {
   it('should compile SquareGame.jack', async () => {
     const jackPath = './test/res/ExpressionLessSquare/SquareGame.jack';
     const xmlPath = './test/res/ExpressionLessSquare/SquareGame.xml';
-    const expectedXmlPath = './test/res/ExpressionLessSquare/SquareGameT.xml';
+    const expectedXmlPath = './test/res/expected/ExpressionLessSquare/SquareGameT.xml';
 
     await fileTestTemplate(async () => {
       await jackAnalyzer(jackPath);

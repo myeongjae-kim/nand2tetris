@@ -11,7 +11,7 @@ describe('jackAnalyzer', () => {
     await fileTestTemplate(async () => {
       await jackAnalyzer(jackPath);
 
-      const expected = (await readFilePromise('./test/res/ExpressionLessSquare/MainT.xml'))
+      const expected = (await readFilePromise('./test/res/expected/ExpressionLessSquare/MainT.xml'))
         .replace(/\r/g, '')
         .trim();
 

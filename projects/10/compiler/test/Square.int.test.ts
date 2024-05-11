@@ -7,7 +7,7 @@ describe('Square', () => {
   it('should compile Main.jack', async () => {
     const jackPath = './test/res/Square/Main.jack';
     const xmlPath = './test/res/Square/Main.xml';
-    const expectedXmlPath = './test/res/Square/MainT.xml';
+    const expectedXmlPath = './test/res/expected/Square/MainT.xml';
 
     await fileTestTemplate(async () => {
       await jackAnalyzer(jackPath);
@@ -24,7 +24,7 @@ describe('Square', () => {
   it('should compile Square.jack', async () => {
     const jackPath = './test/res/Square/Square.jack';
     const xmlPath = './test/res/Square/Square.xml';
-    const expectedXmlPath = './test/res/Square/SquareT.xml';
+    const expectedXmlPath = './test/res/expected/Square/SquareT.xml';
 
     await fileTestTemplate(async () => {
       await jackAnalyzer(jackPath);
@@ -41,7 +41,7 @@ describe('Square', () => {
   it('should compile SquareGame.jack', async () => {
     const jackPath = './test/res/Square/SquareGame.jack';
     const xmlPath = './test/res/Square/SquareGame.xml';
-    const expectedXmlPath = './test/res/Square/SquareGameT.xml';
+    const expectedXmlPath = './test/res/expected/Square/SquareGameT.xml';
 
     await fileTestTemplate(async () => {
       await jackAnalyzer(jackPath);

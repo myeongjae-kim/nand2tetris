@@ -7,7 +7,7 @@ describe('ArrayTest', () => {
   it('should compile Main.jack', async () => {
     const jackPath = './test/res/ArrayTest/Main.jack';
     const xmlPath = './test/res/ArrayTest/Main.xml';
-    const expectedXmlPath = './test/res/ArrayTest/MainT.xml';
+    const expectedXmlPath = './test/res/expected/ArrayTest/MainT.xml';
 
     await fileTestTemplate(async () => {
       await jackAnalyzer(jackPath);
