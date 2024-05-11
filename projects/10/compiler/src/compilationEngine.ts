@@ -91,7 +91,7 @@ const compileClass = (xmls: string[], indentLevel: number, result: string[]): st
       ).cursorProcessed;
     }
 
-    if (value === '{') {
+    if (value === 'let') {
       // TODO: handle subroutine body in compileSubroutineDec
       return { cursorProcessed: cursor, result: _result };
     }
@@ -194,6 +194,53 @@ const handleParameterList = (
   };
 };
 
+const compileVarDec = (xmls: string[], indentLevel: number, result: string[]): CompileResult => {
+  result.push(indentation('<varDec>', indentLevel - 1));
+  const { cursorProcessed } = handleVarDecs(xmls, indentLevel, result);
+  result.push(indentation('</varDec>', indentLevel - 1));
+
+  return { cursorProcessed, result };
+};
+
+const handleSubroutineBody = (
+  xmls: string[],
+  indentLevel: number,
+  result: string[],
+): CompileResult => {
+  result.push(indentation('<subroutineBody>', indentLevel - 1));
+
+  let cursor = 0;
+  const subroutineBodyStartSymbolXml = xmls[cursor++];
+  result.push(indentation(subroutineBodyStartSymbolXml, indentLevel));
+
+  const _handleSubroutineVarDec = (
+    _xmls: string[],
+    _indentLevel: number,
+    _result: string[],
+  ): CompileResult => {
+    let _cursor = 0;
+    const nextXml = parseSingleLineXml(_xmls[_cursor]);
+    if (nextXml.value === 'var') {
+      _cursor += compileVarDec(_xmls.slice(_cursor), _indentLevel + 1, _result).cursorProcessed;
+    }
+
+    return {
+      cursorProcessed: _cursor,
+      result: _result,
+    };
+  };
+
+  cursor += _handleSubroutineVarDec(xmls.slice(cursor), indentLevel, result).cursorProcessed;
+
+  // TODO: print subroutineBodyEndSymbolXml
+  result.push(indentation('</subroutineBody>', indentLevel - 1));
+
+  return {
+    cursorProcessed: cursor,
+    result,
+  };
+};
+
 const compileSubroutineDec = (
   xmls: string[],
   indentLevel: number,
@@ -211,6 +258,7 @@ const compileSubroutineDec = (
   result.push(indentation(subroutineNameXml, indentLevel));
 
   cursor += handleParameterList(xmls.slice(cursor), indentLevel + 1, result).cursorProcessed;
+  cursor += handleSubroutineBody(xmls.slice(cursor), indentLevel + 1, result).cursorProcessed;
 
   result.push(indentation('</subroutineDec>', indentLevel - 1));
 
