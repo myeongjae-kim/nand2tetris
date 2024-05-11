@@ -6,7 +6,7 @@ import { readFilePromise } from '../src/readFilePromise';
 describe('jackAnalyzer', () => {
   it('should compile Main.jack', async () => {
     const jackPath = './test/res/ExpressionLessSquare/Main.jack';
-    const xmlPath = './test/res/ExpressionLessSquare/Main.xml';
+    const tokenXmlPath = './test/res/ExpressionLessSquare/MainT.xml';
 
     await fileTestTemplate(async () => {
       await jackAnalyzer(jackPath);
@@ -15,11 +15,11 @@ describe('jackAnalyzer', () => {
         .replace(/\r/g, '')
         .trim();
 
-      await expect(readFilePromise(xmlPath)).resolves.toEqual(expected);
-    }, xmlPath);
+      await expect(readFilePromise(tokenXmlPath)).resolves.toEqual(expected);
+    }, tokenXmlPath);
 
-    expect(() => deleteFile(xmlPath, false)).toThrowError(
-      "ENOENT: no such file or directory, lstat './test/res/ExpressionLessSquare/Main.xml'",
+    expect(() => deleteFile(tokenXmlPath, false)).toThrowError(
+      "ENOENT: no such file or directory, lstat './test/res/ExpressionLessSquare/MainT.xml'",
     );
   });
 });
