@@ -132,31 +132,30 @@ const handleVarDecs = (xmls: string[], indentLevel: number, result: string[]): C
   let cursor = 0;
   const staticOrFieldXml = xmls[cursor++];
   const typeXml = xmls[cursor++];
-  const varNameXml = xmls[cursor++];
-  const commaOrSemicolonXml = xmls[cursor++];
 
   result.push(indentation(staticOrFieldXml, indentLevel));
   result.push(indentation(typeXml, indentLevel));
-  result.push(indentation(varNameXml, indentLevel));
-  result.push(indentation(commaOrSemicolonXml, indentLevel));
 
-  const commaOrSemicolonParsed = parseSingleLineXml(commaOrSemicolonXml);
-  if (commaOrSemicolonParsed.tag !== 'symbol') {
-    throw Error('Invalid XML.');
-  }
+  const _handleVarDecs = (
+    _xmls: string[],
+    _indentLevel: number,
+    _result: string[],
+  ): CompileResult => {
+    let _cursor = 0;
+    result.push(indentation(_xmls[_cursor++], indentLevel));
+    result.push(indentation(_xmls[_cursor++], indentLevel));
 
-  if (commaOrSemicolonParsed.value === ',') {
-    const { cursorProcessed, result: resultToReturn } = handleVarDecs(
-      xmls.slice(4),
-      indentLevel,
-      result,
-    );
+    if (parseSingleLineXml(_xmls[_cursor - 1]).value === ',') {
+      _cursor += _handleVarDecs(_xmls.slice(_cursor), _indentLevel, _result).cursorProcessed;
+    }
 
     return {
-      cursorProcessed: cursor + cursorProcessed,
-      result: resultToReturn,
+      cursorProcessed: _cursor,
+      result: _result,
     };
-  }
+  };
+
+  cursor += _handleVarDecs(xmls.slice(cursor), indentLevel, result).cursorProcessed;
 
   return {
     cursorProcessed: cursor,
@@ -186,15 +185,38 @@ const handleParameterList = (
 } => {
   let cursor = 0;
 
-  const parameterListStartSymbolXml = xmls[cursor++];
-  // TODO: parametsrs
-  const parameterListEndSymbolXml = xmls[cursor++];
-
-  result.push(indentation(parameterListStartSymbolXml, indentLevel - 1));
+  result.push(indentation(xmls[cursor++], indentLevel - 1)); // (
   result.push(indentation('<parameterList>', indentLevel - 1));
 
+  const _handleParameterList = (
+    _xmls: string[],
+    _indentLevel: number,
+    _result: string[],
+  ): CompileResult => {
+    let _cursor = 0;
+
+    const { value } = parseSingleLineXml(_xmls[_cursor]);
+
+    if (value === ')') {
+      return { cursorProcessed: _cursor, result: _result };
+    } else if (value === ',') {
+      _result.push(indentation(_xmls[_cursor++], _indentLevel)); // ,
+    }
+
+    _result.push(indentation(_xmls[_cursor++], _indentLevel)); // type
+    _result.push(indentation(_xmls[_cursor++], _indentLevel)); // varName
+    _cursor += _handleParameterList(_xmls.slice(_cursor), _indentLevel, _result).cursorProcessed;
+
+    return {
+      cursorProcessed: _cursor,
+      result: _result,
+    };
+  };
+
+  cursor += _handleParameterList(xmls.slice(cursor), indentLevel, result).cursorProcessed;
+
   result.push(indentation('</parameterList>', indentLevel - 1));
-  result.push(indentation(parameterListEndSymbolXml, indentLevel - 1));
+  result.push(indentation(xmls[cursor++], indentLevel - 1)); // )
 
   return {
     cursorProcessed: cursor,
@@ -223,8 +245,16 @@ const compileExpression = (
       return { cursorProcessed: cursor, result: _result };
     }
     const { tag } = parseSingleLineXml(_xmls[cursor]);
-    if (tag !== 'identifier') {
-      throw new Error('compileExpression only handles identifier. current: ' + _xmls[cursor]);
+
+    const implementedTags = [
+      'integerConstant',
+      'stringConstant',
+      'keyword',
+      'symbol',
+      'identifier',
+    ];
+    if (!implementedTags.includes(tag)) {
+      throw new Error('compileExpression cannot handle current line: ' + _xmls[cursor]);
     }
 
     _result.push(indentation('<term>', _indentLevel - 1));
@@ -249,13 +279,27 @@ const compileExpressionList = (
   let cursor = 0;
 
   const _handleExpressions = (
-    xmls: string[],
-    indentLevel: number,
-    result: string[],
+    _xmls: string[],
+    _indentLevel: number,
+    _result: string[],
   ): CompileResult => {
-    const _cursor = 0;
+    if (parseSingleLineXml(_xmls[0]).value === ')') {
+      return { cursorProcessed: 0, result: _result };
+    }
 
-    return { cursorProcessed: 0, result };
+    let _cursor = 0;
+
+    _cursor += compileExpression(_xmls, _indentLevel, _result).cursorProcessed;
+
+    if (parseSingleLineXml(_xmls[_cursor]).value === ',') {
+      _result.push(indentation(_xmls[_cursor++], _indentLevel - 1)); // ,
+      _cursor += _handleExpressions(_xmls.slice(_cursor), _indentLevel, _result).cursorProcessed;
+    }
+
+    return {
+      cursorProcessed: _cursor,
+      result: _result,
+    };
   };
 
   result.push(indentation('<expressionList>', indentLevel - 1));
@@ -361,6 +405,7 @@ const compileStatements = (
         _result.push(indentation('<doStatement>', _indentLevel - 1));
         _result.push(indentation(nextXml, _indentLevel));
         _result.push(indentation(_xmls[_cursor++], _indentLevel));
+
         if (parseSingleLineXml(_xmls[_cursor]).value === '.') {
           _result.push(indentation(_xmls[_cursor++], _indentLevel));
           _result.push(indentation(_xmls[_cursor++], _indentLevel));
@@ -377,8 +422,7 @@ const compileStatements = (
 
         _result.push(indentation('</doStatement>', _indentLevel - 1));
 
-        return { cursorProcessed: _cursor, result: _result };
-        // break;
+        break;
       }
       case 'return': {
         _result.push(indentation('<returnStatement>', _indentLevel - 1));
