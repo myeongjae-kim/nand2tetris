@@ -397,6 +397,25 @@ const compileStatements = (
       case 'while': {
         _result.push(indentation('<whileStatement>', _indentLevel - 1));
 
+        _result.push(indentation(nextXml, _indentLevel)); // while
+        _result.push(indentation(_xmls[_cursor++], _indentLevel)); // (
+        _cursor += compileExpression(
+          _xmls.slice(_cursor),
+          _indentLevel + 1,
+          _result,
+        ).cursorProcessed;
+        _result.push(indentation(_xmls[_cursor++], _indentLevel)); // )
+
+        _result.push(indentation(_xmls[_cursor++], _indentLevel));
+        _result.push(indentation('<statements>', _indentLevel));
+        _cursor += compileStatements(
+          _xmls.slice(_cursor),
+          _indentLevel + 1,
+          _result,
+        ).cursorProcessed;
+        _result.push(indentation('</statements>', _indentLevel));
+        _result.push(indentation(_xmls[_cursor++], _indentLevel));
+
         _result.push(indentation('</whileStatement>', _indentLevel - 1));
 
         break;

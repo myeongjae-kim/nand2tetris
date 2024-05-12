@@ -66,17 +66,27 @@ describe('ExpressionLessSquare', () => {
   it('should compile SquareGame.jack', async () => {
     const jackPath = './test/res/ExpressionLessSquare/SquareGame.jack';
     const tokenXmlPath = './test/res/ExpressionLessSquare/SquareGameT.xml';
+    const xmlPath = './test/res/ExpressionLessSquare/SquareGame.xml';
     const expectedTokenXmlPath = './test/res/expected/ExpressionLessSquare/SquareGameT.xml';
+    const expectedXmlPath = './test/res/expected/ExpressionLessSquare/SquareGame.xml';
 
     await fileTestTemplate(async () => {
       await jackAnalyzer(jackPath);
 
-      const [xml, expectedXml] = await Promise.all([
+      const [tokenXml, expectedTokenXml] = await Promise.all([
         readFilePromise(tokenXmlPath),
         readFilePromise(expectedTokenXmlPath),
       ]);
 
-      expect(xml).toBe(expectedXml.replace(/\r/g, '').trim());
+      expect(tokenXml).toBe(expectedTokenXml.replace(/\r/g, '').trim());
+
+      await compilationEngine(tokenXmlPath);
+      const [xml, expectedXml] = await Promise.all([
+        readFilePromise(xmlPath),
+        readFilePromise(expectedXmlPath),
+      ]);
+
+      expect(xml).toBe(expectedXml.trim().replace(/\r/g, ''));
     }, tokenXmlPath);
   });
 
