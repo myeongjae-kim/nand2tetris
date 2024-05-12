@@ -1,5 +1,17 @@
-export const compilationEngine = (xmls: string[]): string => {
-  return compile(xmls).join('\n');
+import { writeFilePromise } from './writeFilePromise';
+import { readFilePromise } from './readFilePromise';
+
+export const compilationEngine = async (...tokenXmlPaths: string[]): Promise<void> => {
+  await Promise.all(
+    tokenXmlPaths.map(async (tokenXmlPath) => {
+      if (!tokenXmlPath.endsWith('T.xml')) {
+        return;
+      }
+      const xml = compile((await readFilePromise(tokenXmlPath)).split('\n')).join('\n');
+
+      await writeFilePromise(tokenXmlPath.replace('T.xml', '.xml'), xml);
+    }),
+  );
 };
 
 type SingleLineXml = {

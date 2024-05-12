@@ -16,17 +16,20 @@ describe('ExpressionLessSquare', () => {
       async () => {
         await jackAnalyzer(jackPath);
 
-        const [xml, expectedTokenXml, expectedXml] = await Promise.all([
+        const [tokenXml, expectedTokenXml] = await Promise.all([
           readFilePromise(tokenXmlPath),
           readFilePromise(expectedTokenXmlPath),
+        ]);
+
+        expect(tokenXml).toBe(expectedTokenXml.replace(/\r/g, '').trim());
+
+        await compilationEngine(tokenXmlPath);
+        const [xml, expectedXml] = await Promise.all([
+          readFilePromise(xmlPath),
           readFilePromise(expectedXmlPath),
         ]);
 
-        expect(xml).toBe(expectedTokenXml.replace(/\r/g, '').trim());
-
-        expect(compilationEngine(xml.split('\n').map((it) => it.trim()))).toBe(
-          expectedXml.trim().replace(/\r/g, ''),
-        );
+        expect(xml).toBe(expectedXml.trim().replace(/\r/g, ''));
       },
       tokenXmlPath,
       xmlPath,
