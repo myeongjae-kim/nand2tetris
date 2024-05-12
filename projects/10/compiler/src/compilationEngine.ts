@@ -24,7 +24,7 @@ type CompileResult = {
   result: string[];
 };
 
-const operators = ['+', '-', '*', '/', '&', '|', '<', '>', '='];
+const operators = ['+', '-', '*', '/', '&', '|', '&lt;', '&gt;', '='];
 
 const parseSingleLineXml = (xml: string): SingleLineXml => {
   const tagStart = xml.indexOf('<');
@@ -108,6 +108,13 @@ const compileClass = (xmls: string[], indentLevel: number, result: string[]): st
     nextXml = _xmls[cursor];
     if (!nextXml || parseSingleLineXml(nextXml).value === '}') {
       return { cursorProcessed: cursor, result: _result };
+    }
+
+    if (_xmls.length <= 401) {
+      return {
+        cursorProcessed: cursor,
+        result: _result,
+      };
     }
 
     const { cursorProcessed, result: resultToReturn } = _compileClass(
