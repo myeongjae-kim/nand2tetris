@@ -91,11 +91,6 @@ const compileClass = (xmls: string[], indentLevel: number, result: string[]): st
       ).cursorProcessed;
     }
 
-    if (value === 'let') {
-      // TODO: handle subroutine body in compileSubroutineDec
-      return { cursorProcessed: cursor, result: _result };
-    }
-
     nextXml = _xmls[cursor];
     if (!nextXml) {
       return { cursorProcessed: cursor, result: _result };
@@ -202,6 +197,182 @@ const compileVarDec = (xmls: string[], indentLevel: number, result: string[]): C
   return { cursorProcessed, result };
 };
 
+const compileExpression = (
+  xmls: string[],
+  indentLevel: number,
+  result: string[],
+): CompileResult => {
+  result.push(indentation('<expression>', indentLevel - 1));
+
+  const _handleTerm = (_xmls: string[], _indentLevel: number, _result: string[]): CompileResult => {
+    let cursor = 0;
+    if (!_xmls[cursor]) {
+      return { cursorProcessed: cursor, result: _result };
+    }
+    const { tag } = parseSingleLineXml(_xmls[cursor]);
+    if (tag !== 'identifier') {
+      throw new Error('compileExpression only handles identifier. current: ' + _xmls[cursor]);
+    }
+
+    _result.push(indentation('<term>', _indentLevel - 1));
+    _result.push(indentation(_xmls[cursor++], _indentLevel));
+    _result.push(indentation('</term>', _indentLevel - 1));
+
+    return { cursorProcessed: cursor, result: _result };
+  };
+
+  const { cursorProcessed } = _handleTerm(xmls, indentLevel + 1, result);
+
+  result.push(indentation('</expression>', indentLevel - 1));
+
+  return { cursorProcessed, result };
+};
+
+const compileExpressionList = (
+  xmls: string[],
+  indentLevel: number,
+  result: string[],
+): CompileResult => {
+  let cursor = 0;
+
+  const _handleExpressions = (
+    xmls: string[],
+    indentLevel: number,
+    result: string[],
+  ): CompileResult => {
+    const _cursor = 0;
+
+    return { cursorProcessed: 0, result };
+  };
+
+  result.push(indentation('<expressionList>', indentLevel - 1));
+
+  cursor += _handleExpressions(xmls, indentLevel + 1, result).cursorProcessed;
+
+  result.push(indentation('</expressionList>', indentLevel - 1));
+
+  return {
+    cursorProcessed: cursor,
+    result,
+  };
+};
+
+const compileStatements = (
+  xmls: string[],
+  indentLevel: number,
+  result: string[],
+): CompileResult => {
+  result.push(indentation('<statements>', indentLevel - 1));
+
+  const _handleStatements = (
+    _xmls: string[],
+    _indentLevel: number,
+    _result: string[],
+  ): CompileResult => {
+    let _cursor = 0;
+    const nextXml = _xmls[_cursor++];
+    if (!nextXml) {
+      return { cursorProcessed: _cursor, result: _result };
+    }
+
+    const { tag, value } = parseSingleLineXml(nextXml);
+    if (tag !== 'keyword') {
+      return { cursorProcessed: _cursor - 1, result: _result };
+    }
+
+    switch (value) {
+      case 'let': {
+        _result.push(indentation('<letStatement>', _indentLevel - 1));
+        _result.push(indentation(nextXml, _indentLevel));
+        _result.push(indentation(_xmls[_cursor++], _indentLevel));
+        _result.push(indentation(_xmls[_cursor++], _indentLevel));
+        if (parseSingleLineXml(_xmls[_cursor - 1]).value !== '=') {
+          throw new Error('let statement only handles "=". current: ' + _xmls[_cursor]);
+        }
+        _cursor += compileExpression(
+          _xmls.slice(_cursor),
+          _indentLevel + 1,
+          _result,
+        ).cursorProcessed;
+        _result.push(indentation(_xmls[_cursor++], _indentLevel));
+
+        _result.push(indentation('</letStatement>', _indentLevel - 1));
+
+        break;
+      }
+      case 'if': {
+        _result.push(indentation('<ifStatement>', _indentLevel - 1));
+
+        _result.push(indentation('</ifStatement>', _indentLevel - 1));
+
+        break;
+      }
+      case 'while': {
+        _result.push(indentation('<whileStatement>', _indentLevel - 1));
+
+        _result.push(indentation('</whileStatement>', _indentLevel - 1));
+
+        break;
+      }
+      case 'do': {
+        _result.push(indentation('<doStatement>', _indentLevel - 1));
+        _result.push(indentation(nextXml, _indentLevel));
+        _result.push(indentation(_xmls[_cursor++], _indentLevel));
+        if (parseSingleLineXml(_xmls[_cursor]).value === '.') {
+          _result.push(indentation(_xmls[_cursor++], _indentLevel));
+          _result.push(indentation(_xmls[_cursor++], _indentLevel));
+        }
+
+        _result.push(indentation(_xmls[_cursor++], _indentLevel)); // parenthesis open
+        _cursor += compileExpressionList(
+          _xmls.slice(_cursor),
+          _indentLevel + 1,
+          _result,
+        ).cursorProcessed;
+        _result.push(indentation(_xmls[_cursor++], _indentLevel)); // parenthesis close
+        _result.push(indentation(_xmls[_cursor++], _indentLevel)); // semicolon
+
+        _result.push(indentation('</doStatement>', _indentLevel - 1));
+
+        return { cursorProcessed: _cursor, result: _result };
+        // break;
+      }
+      case 'return': {
+        _result.push(indentation('<returnStatement>', _indentLevel - 1));
+
+        _result.push(indentation(nextXml, _indentLevel)); // return
+
+        if (parseSingleLineXml(_xmls[_cursor]).value !== ';') {
+          _cursor += compileExpression(
+            _xmls.slice(_cursor),
+            _indentLevel + 1,
+            _result,
+          ).cursorProcessed;
+        }
+
+        _result.push(indentation(_xmls[_cursor++], _indentLevel)); // semicolon
+
+        _result.push(indentation('</returnStatement>', _indentLevel - 1));
+
+        break;
+      }
+      default:
+        throw new Error('Invalid XML.');
+    }
+
+    return {
+      cursorProcessed:
+        _cursor + _handleStatements(_xmls.slice(_cursor), _indentLevel, _result).cursorProcessed,
+      result: _result,
+    };
+  };
+
+  const { cursorProcessed } = _handleStatements(xmls, indentLevel + 1, result);
+
+  result.push(indentation('</statements>', indentLevel - 1));
+  return { cursorProcessed, result };
+};
+
 const handleSubroutineBody = (
   xmls: string[],
   indentLevel: number,
@@ -219,9 +390,29 @@ const handleSubroutineBody = (
     _result: string[],
   ): CompileResult => {
     let _cursor = 0;
-    const nextXml = parseSingleLineXml(_xmls[_cursor]);
-    if (nextXml.value === 'var') {
+    const nextXml = _xmls[_cursor];
+    if (!nextXml) {
+      return { cursorProcessed: _cursor, result: _result };
+    }
+
+    const { value } = parseSingleLineXml(_xmls[_cursor]);
+
+    if (value === 'var') {
       _cursor += compileVarDec(_xmls.slice(_cursor), _indentLevel + 1, _result).cursorProcessed;
+      _cursor += _handleSubroutineVarDec(
+        _xmls.slice(_cursor),
+        _indentLevel,
+        _result,
+      ).cursorProcessed;
+    }
+
+    if (['let', 'if', 'while', 'do', 'return'].includes(value)) {
+      _cursor += compileStatements(_xmls.slice(_cursor), _indentLevel + 1, _result).cursorProcessed;
+      _cursor += _handleSubroutineVarDec(
+        _xmls.slice(_cursor),
+        _indentLevel,
+        _result,
+      ).cursorProcessed;
     }
 
     return {
@@ -233,6 +424,7 @@ const handleSubroutineBody = (
   cursor += _handleSubroutineVarDec(xmls.slice(cursor), indentLevel, result).cursorProcessed;
 
   // TODO: print subroutineBodyEndSymbolXml
+  result.push(indentation(xmls[cursor++], indentLevel));
   result.push(indentation('</subroutineBody>', indentLevel - 1));
 
   return {
