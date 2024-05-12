@@ -43,24 +43,28 @@ describe('ExpressionLessSquare', () => {
     const expectedTokenXmlPath = './test/res/expected/ExpressionLessSquare/SquareT.xml';
     const expectedXmlPath = './test/res/expected/ExpressionLessSquare/Square.xml';
 
-    await fileTestTemplate(async () => {
-      await jackAnalyzer(jackPath);
+    await fileTestTemplate(
+      async () => {
+        await jackAnalyzer(jackPath);
 
-      const [tokenXml, expectedTokenXml] = await Promise.all([
-        readFilePromise(tokenXmlPath),
-        readFilePromise(expectedTokenXmlPath),
-      ]);
+        const [tokenXml, expectedTokenXml] = await Promise.all([
+          readFilePromise(tokenXmlPath),
+          readFilePromise(expectedTokenXmlPath),
+        ]);
 
-      expect(tokenXml).toBe(expectedTokenXml.replace(/\r/g, '').trim());
+        expect(tokenXml).toBe(expectedTokenXml.replace(/\r/g, '').trim());
 
-      await compilationEngine(tokenXmlPath);
-      const [xml, expectedXml] = await Promise.all([
-        readFilePromise(xmlPath),
-        readFilePromise(expectedXmlPath),
-      ]);
+        await compilationEngine(tokenXmlPath);
+        const [xml, expectedXml] = await Promise.all([
+          readFilePromise(xmlPath),
+          readFilePromise(expectedXmlPath),
+        ]);
 
-      expect(xml).toBe(expectedXml.trim().replace(/\r/g, ''));
-    }, tokenXmlPath);
+        expect(xml).toBe(expectedXml.trim().replace(/\r/g, ''));
+      },
+      tokenXmlPath,
+      xmlPath,
+    );
   });
 
   it('should compile SquareGame.jack', async () => {
@@ -70,24 +74,28 @@ describe('ExpressionLessSquare', () => {
     const expectedTokenXmlPath = './test/res/expected/ExpressionLessSquare/SquareGameT.xml';
     const expectedXmlPath = './test/res/expected/ExpressionLessSquare/SquareGame.xml';
 
-    await fileTestTemplate(async () => {
-      await jackAnalyzer(jackPath);
+    await fileTestTemplate(
+      async () => {
+        await jackAnalyzer(jackPath);
 
-      const [tokenXml, expectedTokenXml] = await Promise.all([
-        readFilePromise(tokenXmlPath),
-        readFilePromise(expectedTokenXmlPath),
-      ]);
+        const [tokenXml, expectedTokenXml] = await Promise.all([
+          readFilePromise(tokenXmlPath),
+          readFilePromise(expectedTokenXmlPath),
+        ]);
 
-      expect(tokenXml).toBe(expectedTokenXml.replace(/\r/g, '').trim());
+        expect(tokenXml).toBe(expectedTokenXml.replace(/\r/g, '').trim());
 
-      await compilationEngine(tokenXmlPath);
-      const [xml, expectedXml] = await Promise.all([
-        readFilePromise(xmlPath),
-        readFilePromise(expectedXmlPath),
-      ]);
+        await compilationEngine(tokenXmlPath);
+        const [xml, expectedXml] = await Promise.all([
+          readFilePromise(xmlPath),
+          readFilePromise(expectedXmlPath),
+        ]);
 
-      expect(xml).toBe(expectedXml.trim().replace(/\r/g, ''));
-    }, tokenXmlPath);
+        expect(xml).toBe(expectedXml.trim().replace(/\r/g, ''));
+      },
+      tokenXmlPath,
+      xmlPath,
+    );
   });
 
   it('should compile a directory', async () => {
