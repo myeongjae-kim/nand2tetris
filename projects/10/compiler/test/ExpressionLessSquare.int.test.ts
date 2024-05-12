@@ -24,7 +24,9 @@ describe('ExpressionLessSquare', () => {
 
         expect(xml).toBe(expectedTokenXml.replace(/\r/g, '').trim());
 
-        expect(compilationEngine(xml.split('\n').map((it) => it.trim()))).toBe(expectedXml);
+        expect(compilationEngine(xml.split('\n').map((it) => it.trim()))).toBe(
+          expectedXml.trim().replace(/\r/g, ''),
+        );
       },
       tokenXmlPath,
       xmlPath,
