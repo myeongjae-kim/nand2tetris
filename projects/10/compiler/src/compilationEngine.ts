@@ -24,7 +24,7 @@ type CompileResult = {
   result: string[];
 };
 
-const operators = ['+', '-', '*', '/', '&', '|', '&lt;', '&gt;', '='];
+const operators = ['+', '-', '*', '/', '&amp;', '|', '&lt;', '&gt;', '='];
 
 const parseSingleLineXml = (xml: string): SingleLineXml => {
   const tagStart = xml.indexOf('<');
@@ -110,12 +110,12 @@ const compileClass = (xmls: string[], indentLevel: number, result: string[]): st
       return { cursorProcessed: cursor, result: _result };
     }
 
-    if (_xmls.length <= 401) {
-      return {
-        cursorProcessed: cursor,
-        result: _result,
-      };
-    }
+    // if (_xmls.length <= 403) {
+    //   return {
+    //     cursorProcessed: cursor,
+    //     result: _result,
+    //   };
+    // }
 
     const { cursorProcessed, result: resultToReturn } = _compileClass(
       _xmls.slice(cursor),
@@ -271,12 +271,6 @@ const compileExpression = (
           if (parseSingleLineXml(_xmls[_cursor]).tag === 'symbol') {
             if (parseSingleLineXml(_xmls[_cursor]).value === ')') {
               _result.push(indentation(_xmls[_cursor++], _indentLevel)); // )
-            } else {
-              _cursor += _handleTerm(
-                _xmls.slice(_cursor),
-                _indentLevel + 1,
-                _result,
-              ).cursorProcessed;
             }
           }
         } else if (operators.includes(_value)) {
@@ -324,19 +318,19 @@ const compileExpression = (
 
         _result.push(indentation('</term>', _indentLevel - 1));
 
-        // op
-        if (operators.includes(parseSingleLineXml(_xmls[_cursor]).value)) {
-          _result.push(indentation(_xmls[_cursor++], _indentLevel - 1)); // print operator
-          _cursor += _handleTerm(_xmls.slice(_cursor), _indentLevel, _result).cursorProcessed;
-        }
-
-        // TODO: unaryOp
-
         break;
       }
       default:
         throw new Error('compileExpression cannot handle current line: ' + _xmls[_cursor]);
     }
+
+    // op
+    if (operators.includes(parseSingleLineXml(_xmls[_cursor]).value)) {
+      _result.push(indentation(_xmls[_cursor++], _indentLevel - 1)); // print operator
+      _cursor += _handleTerm(_xmls.slice(_cursor), _indentLevel, _result).cursorProcessed;
+    }
+
+    // TODO: unaryOp
 
     return { cursorProcessed: _cursor, result: _result };
   };
