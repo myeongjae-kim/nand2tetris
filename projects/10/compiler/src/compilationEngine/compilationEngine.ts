@@ -29,14 +29,13 @@ const compile = (xmls: string[], indentLevel: number, print: (xml: string) => vo
 
   const firstLine = parseSingleLineXml(xmls[0]);
   if (firstLine.tag === 'tokens') {
-    return compile(xmls.slice(1, -1), indentLevel, print);
+    compile(xmls.slice(1, -1), indentLevel, print);
+    return;
   }
 
   if (firstLine.tag === 'keyword') {
     if (firstLine.value === 'class') {
-      return compileClass(xmls, indentLevel + 1, print);
+      compileClass(xmls, indentLevel + 1, print);
     }
   }
-
-  return;
 };

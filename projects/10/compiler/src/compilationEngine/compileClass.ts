@@ -1,5 +1,4 @@
 import { indentation } from '../utils/indentation';
-import { CompileResult } from './CompileResult';
 import { parseSingleLineXml } from '../utils/parseSingleLineXml';
 import { compileClassVarDec } from './compileClassVarDec';
 import { compileSubroutineDec } from './compileSubroutineDec';
@@ -28,37 +27,35 @@ export const compileClass = (
     _xmls: string[],
     _indentLevel: number,
     _print: (xml: string) => void,
-  ): CompileResult => {
+  ): number => {
     let cursor = 0;
     let nextXml = _xmls[cursor];
 
     if (!nextXml) {
-      return { cursorProcessed: cursor };
+      return cursor;
     }
 
     const { value } = parseSingleLineXml(nextXml);
 
     if (['static', 'field'].includes(value)) {
-      cursor += compileClassVarDec(_xmls.slice(cursor), _indentLevel + 1, _print).cursorProcessed;
+      cursor += compileClassVarDec(_xmls.slice(cursor), _indentLevel + 1, _print);
     }
 
     if (['constructor', 'function', 'method'].includes(value)) {
-      cursor += compileSubroutineDec(_xmls.slice(cursor), _indentLevel + 1, _print).cursorProcessed;
+      cursor += compileSubroutineDec(_xmls.slice(cursor), _indentLevel + 1, _print);
     }
 
     nextXml = _xmls[cursor];
     if (!nextXml || parseSingleLineXml(nextXml).value === '}') {
-      return { cursorProcessed: cursor };
+      return cursor;
     }
 
-    const { cursorProcessed } = _compileClass(_xmls.slice(cursor), _indentLevel, _print);
+    const cursorProcessed = _compileClass(_xmls.slice(cursor), _indentLevel, _print);
 
-    return {
-      cursorProcessed: cursor + cursorProcessed,
-    };
+    return cursor + cursorProcessed;
   };
 
-  cursor += _compileClass(xmls.slice(cursor), indentLevel, print).cursorProcessed;
+  cursor += _compileClass(xmls.slice(cursor), indentLevel, print);
 
   print(indentation(xmls[cursor++], indentLevel)); // }
   print(indentation('</class>', indentLevel - 1));
