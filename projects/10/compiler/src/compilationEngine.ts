@@ -24,7 +24,7 @@ type CompileResult = {
   result: string[];
 };
 
-const operators = ['+', '-', '*', '/', '&amp;', '|', '&lt;', '&gt;', '='];
+const operators = ['+', '-', '~', '*', '/', '&amp;', '|', '&lt;', '&gt;', '='];
 
 const parseSingleLineXml = (xml: string): SingleLineXml => {
   const tagStart = xml.indexOf('<');
@@ -324,13 +324,10 @@ const compileExpression = (
         throw new Error('compileExpression cannot handle current line: ' + _xmls[_cursor]);
     }
 
-    // op
     if (operators.includes(parseSingleLineXml(_xmls[_cursor]).value)) {
       _result.push(indentation(_xmls[_cursor++], _indentLevel - 1)); // print operator
       _cursor += _handleTerm(_xmls.slice(_cursor), _indentLevel, _result).cursorProcessed;
     }
-
-    // TODO: unaryOp
 
     return { cursorProcessed: _cursor, result: _result };
   };

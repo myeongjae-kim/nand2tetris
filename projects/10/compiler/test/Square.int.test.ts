@@ -69,10 +69,10 @@ describe('Square', () => {
 
   it('should compile SquareGame.jack', async () => {
     const jackPath = './test/res/Square/SquareGame.jack';
-    const tokenXmlPath = './test/res/Square/SquareGame.xml';
-    const xmlPath = './test/res/Square/Main.xml';
+    const tokenXmlPath = './test/res/Square/SquareGameT.xml';
+    const xmlPath = './test/res/Square/SquareGame.xml';
     const expectedTokenXmlPath = './test/res/expected/Square/SquareGameT.xml';
-    const expectedXmlPath = './test/res/expected/Square/Main.xml';
+    const expectedXmlPath = './test/res/expected/Square/SquareGame.xml';
 
     await fileTestTemplate(
       async () => {
