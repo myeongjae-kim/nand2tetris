@@ -111,13 +111,6 @@ const compileClass = (xmls: string[], indentLevel: number, print: (xml: string) 
       return { cursorProcessed: cursor };
     }
 
-    // if (_xmls.length <= 403) {
-    //   return {
-    //     cursorProcessed: cursor,
-    //     result: _print,
-    //   };
-    // }
-
     const { cursorProcessed } = _compileClass(_xmls.slice(cursor), _indentLevel, _print);
 
     return {
