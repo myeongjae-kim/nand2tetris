@@ -18,42 +18,9 @@ export const compileClass = (
   const identifierXml = xmls[cursor++];
   const curlyBraceStartXml = xmls[cursor++];
 
-  // indent 붙여서 result에 추가
   print(indentation(keywordXml, indentLevel));
   print(indentation(identifierXml, indentLevel));
   print(indentation(curlyBraceStartXml, indentLevel));
-
-  const _compileClass = (
-    _xmls: string[],
-    _indentLevel: number,
-    _print: (xml: string) => void,
-  ): number => {
-    let cursor = 0;
-    let nextXml = _xmls[cursor];
-
-    if (!nextXml) {
-      return cursor;
-    }
-
-    const { value } = parseSingleLineXml(nextXml);
-
-    if (['static', 'field'].includes(value)) {
-      cursor += compileClassVarDec(_xmls.slice(cursor), _indentLevel + 1, _print);
-    }
-
-    if (['constructor', 'function', 'method'].includes(value)) {
-      cursor += compileSubroutineDec(_xmls.slice(cursor), _indentLevel + 1, _print);
-    }
-
-    nextXml = _xmls[cursor];
-    if (!nextXml || parseSingleLineXml(nextXml).value === '}') {
-      return cursor;
-    }
-
-    const cursorProcessed = _compileClass(_xmls.slice(cursor), _indentLevel, _print);
-
-    return cursor + cursorProcessed;
-  };
 
   cursor += _compileClass(xmls.slice(cursor), indentLevel, print);
 
@@ -61,4 +28,36 @@ export const compileClass = (
   print(indentation('</class>', indentLevel - 1));
 
   return;
+};
+
+const _compileClass = (
+  xmls: string[],
+  indentLevel: number,
+  print: (xml: string) => void,
+): number => {
+  let cursor = 0;
+  let nextXml = xmls[cursor];
+
+  if (!nextXml) {
+    return cursor;
+  }
+
+  const { value } = parseSingleLineXml(nextXml);
+
+  if (['static', 'field'].includes(value)) {
+    cursor += compileClassVarDec(xmls.slice(cursor), indentLevel + 1, print);
+  }
+
+  if (['constructor', 'function', 'method'].includes(value)) {
+    cursor += compileSubroutineDec(xmls.slice(cursor), indentLevel + 1, print);
+  }
+
+  nextXml = xmls[cursor];
+  if (!nextXml || parseSingleLineXml(nextXml).value === '}') {
+    return cursor;
+  }
+
+  const cursorProcessed = _compileClass(xmls.slice(cursor), indentLevel, print);
+
+  return cursor + cursorProcessed;
 };

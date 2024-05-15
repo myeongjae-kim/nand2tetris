@@ -8,125 +8,125 @@ export const compileStatements = (
   indentLevel: number,
   print: (xml: string) => void,
 ): number => {
-  const _handleStatements = (
-    _xmls: string[],
-    _indentLevel: number,
-    _print: (xml: string) => void,
-  ): number => {
-    let _cursor = 0;
-    const nextXml = _xmls[_cursor++];
-    if (!nextXml) {
-      return _cursor;
-    }
-
-    const { tag, value } = parseSingleLineXml(nextXml);
-    if (tag !== 'keyword') {
-      return _cursor - 1;
-    }
-
-    switch (value) {
-      case 'let': {
-        _print(indentation('<letStatement>', _indentLevel - 1));
-        _print(indentation(nextXml, _indentLevel));
-        _print(indentation(_xmls[_cursor++], _indentLevel));
-        if (parseSingleLineXml(_xmls[_cursor]).value === '[') {
-          _print(indentation(_xmls[_cursor++], _indentLevel)); // [
-          _cursor += compileExpression(_xmls.slice(_cursor), _indentLevel + 1, _print);
-          _print(indentation(_xmls[_cursor++], _indentLevel)); // ]
-        }
-        _print(indentation(_xmls[_cursor++], _indentLevel)); // =
-        _cursor += compileExpression(_xmls.slice(_cursor), _indentLevel + 1, _print);
-        _print(indentation(_xmls[_cursor++], _indentLevel));
-
-        _print(indentation('</letStatement>', _indentLevel - 1));
-
-        break;
-      }
-      case 'if': {
-        _print(indentation('<ifStatement>', _indentLevel - 1));
-
-        _print(indentation(nextXml, _indentLevel)); // if
-        _print(indentation(_xmls[_cursor++], _indentLevel)); // (
-        _cursor += compileExpression(_xmls.slice(_cursor), _indentLevel + 1, _print);
-        _print(indentation(_xmls[_cursor++], _indentLevel)); // )
-
-        _print(indentation(_xmls[_cursor++], _indentLevel));
-        _print(indentation('<statements>', _indentLevel));
-        _cursor += compileStatements(_xmls.slice(_cursor), _indentLevel + 1, _print);
-        _print(indentation('</statements>', _indentLevel));
-        _print(indentation(_xmls[_cursor++], _indentLevel));
-
-        if (parseSingleLineXml(_xmls[_cursor]).value === 'else') {
-          _print(indentation(_xmls[_cursor++], _indentLevel)); // else
-          _print(indentation(_xmls[_cursor++], _indentLevel)); // {
-          _print(indentation('<statements>', _indentLevel));
-          _cursor += compileStatements(_xmls.slice(_cursor), _indentLevel + 1, _print);
-          _print(indentation('</statements>', _indentLevel));
-          _print(indentation(_xmls[_cursor++], _indentLevel)); // }
-        }
-
-        _print(indentation('</ifStatement>', _indentLevel - 1));
-
-        break;
-      }
-      case 'while': {
-        _print(indentation('<whileStatement>', _indentLevel - 1));
-
-        _print(indentation(nextXml, _indentLevel)); // while
-        _print(indentation(_xmls[_cursor++], _indentLevel)); // (
-        _cursor += compileExpression(_xmls.slice(_cursor), _indentLevel + 1, _print);
-        _print(indentation(_xmls[_cursor++], _indentLevel)); // )
-
-        _print(indentation(_xmls[_cursor++], _indentLevel));
-        _print(indentation('<statements>', _indentLevel));
-        _cursor += compileStatements(_xmls.slice(_cursor), _indentLevel + 1, _print);
-        _print(indentation('</statements>', _indentLevel));
-        _print(indentation(_xmls[_cursor++], _indentLevel));
-
-        _print(indentation('</whileStatement>', _indentLevel - 1));
-
-        break;
-      }
-      case 'do': {
-        _print(indentation('<doStatement>', _indentLevel - 1));
-        _print(indentation(nextXml, _indentLevel));
-        _print(indentation(_xmls[_cursor++], _indentLevel));
-
-        if (parseSingleLineXml(_xmls[_cursor]).value === '.') {
-          _print(indentation(_xmls[_cursor++], _indentLevel));
-          _print(indentation(_xmls[_cursor++], _indentLevel));
-        }
-
-        _print(indentation(_xmls[_cursor++], _indentLevel)); // parenthesis open
-        _cursor += compileExpressionList(_xmls.slice(_cursor), _indentLevel + 1, _print);
-        _print(indentation(_xmls[_cursor++], _indentLevel)); // parenthesis close
-        _print(indentation(_xmls[_cursor++], _indentLevel)); // semicolon
-
-        _print(indentation('</doStatement>', _indentLevel - 1));
-
-        break;
-      }
-      case 'return': {
-        _print(indentation('<returnStatement>', _indentLevel - 1));
-
-        _print(indentation(nextXml, _indentLevel)); // return
-
-        if (parseSingleLineXml(_xmls[_cursor]).value !== ';') {
-          _cursor += compileExpression(_xmls.slice(_cursor), _indentLevel + 1, _print);
-        }
-
-        _print(indentation(_xmls[_cursor++], _indentLevel)); // semicolon
-
-        _print(indentation('</returnStatement>', _indentLevel - 1));
-
-        break;
-      }
-      default:
-        throw new Error('Invalid XML.');
-    }
-
-    return _cursor + _handleStatements(_xmls.slice(_cursor), _indentLevel, _print);
-  };
-
   return _handleStatements(xmls, indentLevel + 1, print);
+};
+
+const _handleStatements = (
+  xmls: string[],
+  indentLevel: number,
+  print: (xml: string) => void,
+): number => {
+  let _cursor = 0;
+  const nextXml = xmls[_cursor++];
+  if (!nextXml) {
+    return _cursor;
+  }
+
+  const { tag, value } = parseSingleLineXml(nextXml);
+  if (tag !== 'keyword') {
+    return _cursor - 1;
+  }
+
+  switch (value) {
+    case 'let': {
+      print(indentation('<letStatement>', indentLevel - 1));
+      print(indentation(nextXml, indentLevel));
+      print(indentation(xmls[_cursor++], indentLevel));
+      if (parseSingleLineXml(xmls[_cursor]).value === '[') {
+        print(indentation(xmls[_cursor++], indentLevel)); // [
+        _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print);
+        print(indentation(xmls[_cursor++], indentLevel)); // ]
+      }
+      print(indentation(xmls[_cursor++], indentLevel)); // =
+      _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print);
+      print(indentation(xmls[_cursor++], indentLevel));
+
+      print(indentation('</letStatement>', indentLevel - 1));
+
+      break;
+    }
+    case 'if': {
+      print(indentation('<ifStatement>', indentLevel - 1));
+
+      print(indentation(nextXml, indentLevel)); // if
+      print(indentation(xmls[_cursor++], indentLevel)); // (
+      _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print);
+      print(indentation(xmls[_cursor++], indentLevel)); // )
+
+      print(indentation(xmls[_cursor++], indentLevel));
+      print(indentation('<statements>', indentLevel));
+      _cursor += compileStatements(xmls.slice(_cursor), indentLevel + 1, print);
+      print(indentation('</statements>', indentLevel));
+      print(indentation(xmls[_cursor++], indentLevel));
+
+      if (parseSingleLineXml(xmls[_cursor]).value === 'else') {
+        print(indentation(xmls[_cursor++], indentLevel)); // else
+        print(indentation(xmls[_cursor++], indentLevel)); // {
+        print(indentation('<statements>', indentLevel));
+        _cursor += compileStatements(xmls.slice(_cursor), indentLevel + 1, print);
+        print(indentation('</statements>', indentLevel));
+        print(indentation(xmls[_cursor++], indentLevel)); // }
+      }
+
+      print(indentation('</ifStatement>', indentLevel - 1));
+
+      break;
+    }
+    case 'while': {
+      print(indentation('<whileStatement>', indentLevel - 1));
+
+      print(indentation(nextXml, indentLevel)); // while
+      print(indentation(xmls[_cursor++], indentLevel)); // (
+      _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print);
+      print(indentation(xmls[_cursor++], indentLevel)); // )
+
+      print(indentation(xmls[_cursor++], indentLevel));
+      print(indentation('<statements>', indentLevel));
+      _cursor += compileStatements(xmls.slice(_cursor), indentLevel + 1, print);
+      print(indentation('</statements>', indentLevel));
+      print(indentation(xmls[_cursor++], indentLevel));
+
+      print(indentation('</whileStatement>', indentLevel - 1));
+
+      break;
+    }
+    case 'do': {
+      print(indentation('<doStatement>', indentLevel - 1));
+      print(indentation(nextXml, indentLevel));
+      print(indentation(xmls[_cursor++], indentLevel));
+
+      if (parseSingleLineXml(xmls[_cursor]).value === '.') {
+        print(indentation(xmls[_cursor++], indentLevel));
+        print(indentation(xmls[_cursor++], indentLevel));
+      }
+
+      print(indentation(xmls[_cursor++], indentLevel)); // parenthesis open
+      _cursor += compileExpressionList(xmls.slice(_cursor), indentLevel + 1, print);
+      print(indentation(xmls[_cursor++], indentLevel)); // parenthesis close
+      print(indentation(xmls[_cursor++], indentLevel)); // semicolon
+
+      print(indentation('</doStatement>', indentLevel - 1));
+
+      break;
+    }
+    case 'return': {
+      print(indentation('<returnStatement>', indentLevel - 1));
+
+      print(indentation(nextXml, indentLevel)); // return
+
+      if (parseSingleLineXml(xmls[_cursor]).value !== ';') {
+        _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print);
+      }
+
+      print(indentation(xmls[_cursor++], indentLevel)); // semicolon
+
+      print(indentation('</returnStatement>', indentLevel - 1));
+
+      break;
+    }
+    default:
+      throw new Error('Invalid XML.');
+  }
+
+  return _cursor + _handleStatements(xmls.slice(_cursor), indentLevel, print);
 };
