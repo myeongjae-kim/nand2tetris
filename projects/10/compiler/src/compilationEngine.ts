@@ -245,6 +245,8 @@ const compileExpression = (
     _indentLevel: number,
     _print: (xml: string) => void,
   ): CompileResult => {
+    _print(indentation('<term>', _indentLevel - 1));
+
     let _cursor = 0;
     if (!_xmls[_cursor]) {
       return { cursorProcessed: _cursor };
@@ -253,8 +255,6 @@ const compileExpression = (
 
     switch (tag) {
       case 'symbol': {
-        _print(indentation('<term>', _indentLevel - 1));
-
         const { value: _value } = parseSingleLineXml(_xmls[_cursor]);
         if (_value === '(') {
           _print(indentation(_xmls[_cursor++], _indentLevel)); // (
@@ -274,14 +274,12 @@ const compileExpression = (
           _cursor += _handleTerm(_xmls.slice(_cursor), _indentLevel + 1, _print).cursorProcessed;
         }
 
-        _print(indentation('</term>', _indentLevel - 1));
         break;
       }
       case 'integerConstant':
       case 'stringConstant':
       case 'keyword':
       case 'identifier': {
-        _print(indentation('<term>', _indentLevel - 1));
         _print(indentation(_xmls[_cursor++], _indentLevel));
 
         if (parseSingleLineXml(_xmls[_cursor]).value === '.') {
@@ -311,14 +309,12 @@ const compileExpression = (
 
           _print(indentation(_xmls[_cursor++], _indentLevel)); // ]
         }
-
-        _print(indentation('</term>', _indentLevel - 1));
-
         break;
       }
       default:
         throw new Error('compileExpression cannot handle current line: ' + _xmls[_cursor]);
     }
+    _print(indentation('</term>', _indentLevel - 1));
 
     if (operators.includes(parseSingleLineXml(_xmls[_cursor]).value)) {
       _print(indentation(_xmls[_cursor++], _indentLevel - 1)); // print operator
