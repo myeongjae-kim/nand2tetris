@@ -34,12 +34,14 @@ const _handleTerm = (xmls: string[], indentLevel: number, print: (xml: string) =
         print(indentation(xmls[_cursor++], indentLevel)); // (
         _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print);
 
-        if (parseSingleLineXml(xmls[_cursor]).tag === 'symbol') {
-          if (parseSingleLineXml(xmls[_cursor]).value === ')') {
-            print(indentation(xmls[_cursor++], indentLevel)); // )
-          }
+        if (parseSingleLineXml(xmls[_cursor]).value === ')') {
+          print(indentation(xmls[_cursor++], indentLevel)); // )
         }
-      } else if (operators.includes(_value)) {
+
+        break;
+      }
+
+      if (operators.includes(_value)) {
         print(indentation(xmls[_cursor++], indentLevel));
         _cursor += _handleTerm(xmls.slice(_cursor), indentLevel + 1, print);
       }
