@@ -21,7 +21,6 @@ type SingleLineXml = {
 
 type CompileResult = {
   cursorProcessed: number;
-  result: string[];
 };
 
 const operators = ['+', '-', '~', '*', '/', '&amp;', '|', '&lt;', '&gt;', '='];
@@ -88,7 +87,7 @@ const compileClass = (xmls: string[], indentLevel: number, result: string[]): st
     let nextXml = _xmls[cursor];
 
     if (!nextXml) {
-      return { cursorProcessed: cursor, result: _result };
+      return { cursorProcessed: cursor };
     }
 
     const { value } = parseSingleLineXml(nextXml);
@@ -107,7 +106,7 @@ const compileClass = (xmls: string[], indentLevel: number, result: string[]): st
 
     nextXml = _xmls[cursor];
     if (!nextXml || parseSingleLineXml(nextXml).value === '}') {
-      return { cursorProcessed: cursor, result: _result };
+      return { cursorProcessed: cursor };
     }
 
     // if (_xmls.length <= 403) {
@@ -117,15 +116,10 @@ const compileClass = (xmls: string[], indentLevel: number, result: string[]): st
     //   };
     // }
 
-    const { cursorProcessed, result: resultToReturn } = _compileClass(
-      _xmls.slice(cursor),
-      _indentLevel,
-      _result,
-    );
+    const { cursorProcessed } = _compileClass(_xmls.slice(cursor), _indentLevel, _result);
 
     return {
       cursorProcessed: cursor + cursorProcessed,
-      result: resultToReturn,
     };
   };
 
@@ -160,7 +154,6 @@ const handleVarDecs = (xmls: string[], indentLevel: number, result: string[]): C
 
     return {
       cursorProcessed: _cursor,
-      result: _result,
     };
   };
 
@@ -168,7 +161,6 @@ const handleVarDecs = (xmls: string[], indentLevel: number, result: string[]): C
 
   return {
     cursorProcessed: cursor,
-    result,
   };
 };
 
@@ -181,7 +173,7 @@ const compileClassVarDec = (
   const { cursorProcessed } = handleVarDecs(xmls, indentLevel, result);
   result.push(indentation('</classVarDec>', indentLevel - 1));
 
-  return { cursorProcessed, result };
+  return { cursorProcessed };
 };
 
 const handleParameterList = (
@@ -207,7 +199,7 @@ const handleParameterList = (
     const { value } = parseSingleLineXml(_xmls[_cursor]);
 
     if (value === ')') {
-      return { cursorProcessed: _cursor, result: _result };
+      return { cursorProcessed: _cursor };
     } else if (value === ',') {
       _result.push(indentation(_xmls[_cursor++], _indentLevel)); // ,
     }
@@ -218,7 +210,6 @@ const handleParameterList = (
 
     return {
       cursorProcessed: _cursor,
-      result: _result,
     };
   };
 
@@ -238,7 +229,7 @@ const compileVarDec = (xmls: string[], indentLevel: number, result: string[]): C
   const { cursorProcessed } = handleVarDecs(xmls, indentLevel, result);
   result.push(indentation('</varDec>', indentLevel - 1));
 
-  return { cursorProcessed, result };
+  return { cursorProcessed };
 };
 
 const compileExpression = (
@@ -251,7 +242,7 @@ const compileExpression = (
   const _handleTerm = (_xmls: string[], _indentLevel: number, _result: string[]): CompileResult => {
     let _cursor = 0;
     if (!_xmls[_cursor]) {
-      return { cursorProcessed: _cursor, result: _result };
+      return { cursorProcessed: _cursor };
     }
     const { tag } = parseSingleLineXml(_xmls[_cursor]);
 
@@ -329,14 +320,14 @@ const compileExpression = (
       _cursor += _handleTerm(_xmls.slice(_cursor), _indentLevel, _result).cursorProcessed;
     }
 
-    return { cursorProcessed: _cursor, result: _result };
+    return { cursorProcessed: _cursor };
   };
 
   const { cursorProcessed } = _handleTerm(xmls, indentLevel + 1, result);
 
   result.push(indentation('</expression>', indentLevel - 1));
 
-  return { cursorProcessed, result };
+  return { cursorProcessed };
 };
 
 const compileExpressionList = (
@@ -352,7 +343,7 @@ const compileExpressionList = (
     _result: string[],
   ): CompileResult => {
     if (parseSingleLineXml(_xmls[0]).value === ')') {
-      return { cursorProcessed: 0, result: _result };
+      return { cursorProcessed: 0 };
     }
 
     let _cursor = 0;
@@ -366,7 +357,6 @@ const compileExpressionList = (
 
     return {
       cursorProcessed: _cursor,
-      result: _result,
     };
   };
 
@@ -378,7 +368,6 @@ const compileExpressionList = (
 
   return {
     cursorProcessed: cursor,
-    result,
   };
 };
 
@@ -395,12 +384,12 @@ const compileStatements = (
     let _cursor = 0;
     const nextXml = _xmls[_cursor++];
     if (!nextXml) {
-      return { cursorProcessed: _cursor, result: _result };
+      return { cursorProcessed: _cursor };
     }
 
     const { tag, value } = parseSingleLineXml(nextXml);
     if (tag !== 'keyword') {
-      return { cursorProcessed: _cursor - 1, result: _result };
+      return { cursorProcessed: _cursor - 1 };
     }
 
     switch (value) {
@@ -543,13 +532,12 @@ const compileStatements = (
     return {
       cursorProcessed:
         _cursor + _handleStatements(_xmls.slice(_cursor), _indentLevel, _result).cursorProcessed,
-      result: _result,
     };
   };
 
   const { cursorProcessed } = _handleStatements(xmls, indentLevel + 1, result);
 
-  return { cursorProcessed, result };
+  return { cursorProcessed };
 };
 
 const handleSubroutineBody = (
@@ -572,7 +560,7 @@ const handleSubroutineBody = (
     const nextXml = _xmls[_cursor];
 
     if (!nextXml) {
-      return { cursorProcessed: _cursor, result: _result };
+      return { cursorProcessed: _cursor };
     }
 
     const { value } = parseSingleLineXml(nextXml);
@@ -588,7 +576,6 @@ const handleSubroutineBody = (
 
     return {
       cursorProcessed: _cursor,
-      result: _result,
     };
   };
 
@@ -600,7 +587,7 @@ const handleSubroutineBody = (
     let _cursor = 0;
     const nextXml = _xmls[_cursor];
     if (!nextXml) {
-      return { cursorProcessed: _cursor, result: _result };
+      return { cursorProcessed: _cursor };
     }
 
     const { value } = parseSingleLineXml(_xmls[_cursor]);
@@ -622,7 +609,6 @@ const handleSubroutineBody = (
 
     return {
       cursorProcessed: _cursor,
-      result: _result,
     };
   };
 
@@ -634,7 +620,6 @@ const handleSubroutineBody = (
 
   return {
     cursorProcessed: cursor,
-    result,
   };
 };
 
@@ -659,5 +644,5 @@ const compileSubroutineDec = (
 
   result.push(indentation('</subroutineDec>', indentLevel - 1));
 
-  return { cursorProcessed: cursor, result };
+  return { cursorProcessed: cursor };
 };
