@@ -22,7 +22,7 @@ describe('ArrayTest', () => {
 
       expect(tokenXml).toBe(expectedTokenXml.replace(/\r/g, '').trim());
 
-      await compilationEngine(tokenXmlPath);
+      await compilationEngine({ tokenXmlPaths: [tokenXmlPath] });
       const [xml, expectedXml] = await Promise.all([
         readFilePromise(xmlPath),
         readFilePromise(expectedXmlPath),

@@ -8,10 +8,7 @@ type Args = {
   printVmCode?: boolean;
 };
 
-export const compilationEngineAlter = async ({
-  tokenXmlPaths,
-  printVmCode,
-}: Args): Promise<void> => {
+export const compilationEngine = async ({ tokenXmlPaths, printVmCode }: Args): Promise<void> => {
   await Promise.all(
     tokenXmlPaths.map(async (tokenXmlPath) => {
       if (!tokenXmlPath.endsWith('T.xml')) {
@@ -36,25 +33,6 @@ export const compilationEngineAlter = async ({
           ? writeFilePromise(tokenXmlPath.replace('T.xml', '.vm'), vms.join('\n'))
           : Promise.resolve(),
       ]);
-    }),
-  );
-};
-
-export const compilationEngine = async (...tokenXmlPaths: string[]): Promise<void> => {
-  await Promise.all(
-    tokenXmlPaths.map(async (tokenXmlPath) => {
-      if (!tokenXmlPath.endsWith('T.xml')) {
-        return;
-      }
-
-      let xml = '';
-      const print = (_xml: string) => {
-        xml += _xml + '\n';
-      };
-
-      compile((await readFilePromise(tokenXmlPath)).split('\n'), 0, print, () => {});
-
-      await writeFilePromise(tokenXmlPath.replace('T.xml', '.xml'), xml.trim());
     }),
   );
 };

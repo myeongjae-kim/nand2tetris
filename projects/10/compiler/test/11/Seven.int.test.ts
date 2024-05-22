@@ -4,7 +4,7 @@ import { fileTestTemplate } from '../testHelper';
 import { readFilePromise } from '../../src/readFilePromise';
 import { compilationEngine } from '../../src/compilationEngine';
 
-describe('ArrayTest', () => {
+describe('SevenTest', () => {
   it('should compile Main.jack', async () => {
     const jackPath = './test/res/11/Seven/Main.jack';
     const tokenXmlPath = './test/res/11/Seven/MainT.xml';
@@ -15,7 +15,7 @@ describe('ArrayTest', () => {
     await fileTestTemplate(
       async () => {
         await jackAnalyzer(jackPath);
-        await compilationEngine(tokenXmlPath);
+        await compilationEngine({ tokenXmlPaths: [tokenXmlPath], printVmCode: true });
 
         const [vm, expectedVm] = await Promise.all([
           readFilePromise(vmPath),
