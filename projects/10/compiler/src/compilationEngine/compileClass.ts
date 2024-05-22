@@ -2,6 +2,7 @@ import { indentation } from '../utils/indentation';
 import { parseSingleLineXml } from '../utils/parseSingleLineXml';
 import { compileClassVarDec } from './compileClassVarDec';
 import { compileSubroutineDec } from './compileSubroutineDec';
+import { ClassSymbolTable } from './model/ClassSymbolTable';
 
 export const compileClass = (
   xmls: string[],
@@ -23,7 +24,10 @@ export const compileClass = (
   print(indentation(identifierXml, indentLevel));
   print(indentation(curlyBraceStartXml, indentLevel));
 
-  cursor += _compileClass(xmls.slice(cursor), indentLevel, print, printVm);
+  const className = parseSingleLineXml(identifierXml).value; // class name
+  const classSymbolTable = new ClassSymbolTable(className);
+
+  cursor += _compileClass(xmls.slice(cursor), indentLevel, classSymbolTable, print, printVm);
 
   print(indentation(xmls[cursor++], indentLevel)); // }
   print(indentation('</class>', indentLevel - 1));
@@ -34,6 +38,7 @@ export const compileClass = (
 const _compileClass = (
   xmls: string[],
   indentLevel: number,
+  classSymbolTable: ClassSymbolTable,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
 ): number => {
@@ -49,9 +54,14 @@ const _compileClass = (
   if (['static', 'field'].includes(value)) {
     cursor += compileClassVarDec(xmls.slice(cursor), indentLevel + 1, print, printVm);
   }
-
   if (['constructor', 'function', 'method'].includes(value)) {
-    cursor += compileSubroutineDec(xmls.slice(cursor), indentLevel + 1, print, printVm);
+    cursor += compileSubroutineDec(
+      xmls.slice(cursor),
+      indentLevel + 1,
+      classSymbolTable,
+      print,
+      printVm,
+    );
   }
 
   nextXml = xmls[cursor];
@@ -59,7 +69,13 @@ const _compileClass = (
     return cursor;
   }
 
-  const cursorProcessed = _compileClass(xmls.slice(cursor), indentLevel, print, printVm);
+  const cursorProcessed = _compileClass(
+    xmls.slice(cursor),
+    indentLevel,
+    classSymbolTable,
+    print,
+    printVm,
+  );
 
   return cursor + cursorProcessed;
 };

@@ -3,10 +3,14 @@ import { parseSingleLineXml } from '../utils/parseSingleLineXml';
 import { compileStatements } from './compileStatements';
 import { compileVarDec } from './compileVarDec';
 import { compileParameterList } from './compileParameterList';
+import { ClassSymbolTable } from './model/ClassSymbolTable';
+import { SubroutineSymbolTable } from './model/SubroutineSymbolTable';
+import { vmWriter } from './model/VmWriter';
 
 export const compileSubroutineDec = (
   xmls: string[],
   indentLevel: number,
+  classSymbolTable: ClassSymbolTable,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
 ): number => {
@@ -21,8 +25,29 @@ export const compileSubroutineDec = (
   print(indentation(typeXml, indentLevel));
   print(indentation(subroutineNameXml, indentLevel));
 
+  const subroutineSymbolTable = new SubroutineSymbolTable(
+    parseSingleLineXml(subroutineNameXml).value,
+  );
+
+  // TODO: parameter 개수 세기
   cursor += compileParameterList(xmls.slice(cursor), indentLevel + 1, print, printVm);
-  cursor += _compileSubroutineBody(xmls.slice(cursor), indentLevel + 1, print, printVm);
+
+  printVm(
+    vmWriter.writeFunction(
+      classSymbolTable.className,
+      subroutineSymbolTable.subroutineName,
+      0, // TODO: 하드코딩된 매개변수 개수 변경
+    ),
+  );
+
+  cursor += _compileSubroutineBody(
+    xmls.slice(cursor),
+    indentLevel + 1,
+    classSymbolTable,
+    subroutineSymbolTable,
+    print,
+    printVm,
+  );
 
   print(indentation('</subroutineDec>', indentLevel - 1));
 
@@ -32,6 +57,8 @@ export const compileSubroutineDec = (
 const _compileSubroutineBody = (
   xmls: string[],
   indentLevel: number,
+  classSymbolTable: ClassSymbolTable,
+  subroutineSymbolTable: SubroutineSymbolTable,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
 ): number => {
@@ -41,7 +68,14 @@ const _compileSubroutineBody = (
   const subroutineBodyStartSymbolXml = xmls[cursor++];
   print(indentation(subroutineBodyStartSymbolXml, indentLevel));
 
-  cursor += _handleSubroutineBody(xmls.slice(cursor), indentLevel, print, printVm);
+  cursor += _handleSubroutineBody(
+    xmls.slice(cursor),
+    indentLevel,
+    classSymbolTable,
+    subroutineSymbolTable,
+    print,
+    printVm,
+  );
 
   print(indentation(xmls[cursor++], indentLevel));
   print(indentation('</subroutineBody>', indentLevel - 1));
@@ -52,6 +86,8 @@ const _compileSubroutineBody = (
 const _handleSubroutineBody = (
   xmls: string[],
   indentLevel: number,
+  classSymbolTable: ClassSymbolTable,
+  subroutineSymbolTable: SubroutineSymbolTable,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
 ): number => {
@@ -65,12 +101,26 @@ const _handleSubroutineBody = (
 
   if (value === 'var') {
     _cursor += compileVarDec(xmls.slice(_cursor), indentLevel + 1, print, printVm);
-    _cursor += _handleSubroutineBody(xmls.slice(_cursor), indentLevel, print, printVm);
+    _cursor += _handleSubroutineBody(
+      xmls.slice(_cursor),
+      indentLevel,
+      classSymbolTable,
+      subroutineSymbolTable,
+      print,
+      printVm,
+    );
   }
 
   if (['let', 'if', 'while', 'do', 'return'].includes(value)) {
     print(indentation('<statements>', indentLevel));
-    _cursor += _handleSubroutineStatements(xmls.slice(_cursor), indentLevel, print, printVm);
+    _cursor += _handleSubroutineStatements(
+      xmls.slice(_cursor),
+      indentLevel,
+      classSymbolTable,
+      subroutineSymbolTable,
+      print,
+      printVm,
+    );
     print(indentation('</statements>', indentLevel));
   }
 
@@ -80,6 +130,8 @@ const _handleSubroutineBody = (
 const _handleSubroutineStatements = (
   xmls: string[],
   indentLevel: number,
+  classSymbolTable: ClassSymbolTable,
+  subroutineSymbolTable: SubroutineSymbolTable,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
 ): number => {
@@ -94,7 +146,14 @@ const _handleSubroutineStatements = (
 
   if (['let', 'if', 'while', 'do', 'return'].includes(value)) {
     _cursor += compileStatements(xmls.slice(_cursor), indentLevel + 1, print, printVm);
-    _cursor += _handleSubroutineStatements(xmls.slice(_cursor), indentLevel, print, printVm);
+    _cursor += _handleSubroutineStatements(
+      xmls.slice(_cursor),
+      indentLevel,
+      classSymbolTable,
+      subroutineSymbolTable,
+      print,
+      printVm,
+    );
   }
 
   return _cursor;

@@ -1,7 +1,11 @@
 import { SymbolTableImpl } from './SymbolTableImpl';
 
 export class ClassSymbolTable extends SymbolTableImpl {
-  constructor() {
+  constructor(private _className: string) {
     super();
+  }
+
+  public get className(): string {
+    return this._className;
   }
 }
