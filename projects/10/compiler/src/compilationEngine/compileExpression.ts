@@ -6,17 +6,23 @@ export const compileExpression = (
   xmls: string[],
   indentLevel: number,
   print: (xml: string) => void,
+  printVm: (vm: string) => void,
 ): number => {
   print(indentation('<expression>', indentLevel - 1));
 
-  const cursorProcessed = _handleTerm(xmls, indentLevel + 1, print);
+  const cursorProcessed = _handleTerm(xmls, indentLevel + 1, print, printVm);
 
   print(indentation('</expression>', indentLevel - 1));
 
   return cursorProcessed;
 };
 
-const _handleTerm = (xmls: string[], indentLevel: number, print: (xml: string) => void): number => {
+const _handleTerm = (
+  xmls: string[],
+  indentLevel: number,
+  print: (xml: string) => void,
+  printVm: (vm: string) => void,
+): number => {
   print(indentation('<term>', indentLevel - 1));
 
   let _cursor = 0;
@@ -32,7 +38,7 @@ const _handleTerm = (xmls: string[], indentLevel: number, print: (xml: string) =
       const { value: _value } = parseSingleLineXml(xmls[_cursor]);
       if (_value === '(') {
         print(indentation(xmls[_cursor++], indentLevel)); // (
-        _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print);
+        _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print, printVm);
 
         if (parseSingleLineXml(xmls[_cursor]).value === ')') {
           print(indentation(xmls[_cursor++], indentLevel)); // )
@@ -43,7 +49,7 @@ const _handleTerm = (xmls: string[], indentLevel: number, print: (xml: string) =
 
       if (operators.includes(_value)) {
         print(indentation(xmls[_cursor++], indentLevel));
-        _cursor += _handleTerm(xmls.slice(_cursor), indentLevel + 1, print);
+        _cursor += _handleTerm(xmls.slice(_cursor), indentLevel + 1, print, printVm);
       }
 
       break;
@@ -61,13 +67,13 @@ const _handleTerm = (xmls: string[], indentLevel: number, print: (xml: string) =
 
       if (parseSingleLineXml(xmls[_cursor]).value === '(') {
         print(indentation(xmls[_cursor++], indentLevel)); // (
-        _cursor += compileExpressionList(xmls.slice(_cursor), indentLevel + 1, print);
+        _cursor += compileExpressionList(xmls.slice(_cursor), indentLevel + 1, print, printVm);
         print(indentation(xmls[_cursor++], indentLevel)); // )
       }
 
       if (parseSingleLineXml(xmls[_cursor]).value === '[') {
         print(indentation(xmls[_cursor++], indentLevel)); // [
-        _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print);
+        _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print, printVm);
         print(indentation(xmls[_cursor++], indentLevel)); // ]
       }
       break;
@@ -79,7 +85,7 @@ const _handleTerm = (xmls: string[], indentLevel: number, print: (xml: string) =
 
   if (operators.includes(parseSingleLineXml(xmls[_cursor]).value)) {
     print(indentation(xmls[_cursor++], indentLevel - 1)); // print operator
-    _cursor += _handleTerm(xmls.slice(_cursor), indentLevel, print);
+    _cursor += _handleTerm(xmls.slice(_cursor), indentLevel, print, printVm);
   }
 
   return _cursor;

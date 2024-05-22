@@ -6,12 +6,13 @@ export const compileExpressionList = (
   xmls: string[],
   indentLevel: number,
   print: (xml: string) => void,
+  printVm: (vm: string) => void,
 ): number => {
   let cursor = 0;
 
   print(indentation('<expressionList>', indentLevel - 1));
 
-  cursor += _handleExpressions(xmls, indentLevel + 1, print);
+  cursor += _handleExpressions(xmls, indentLevel + 1, print, printVm);
 
   print(indentation('</expressionList>', indentLevel - 1));
 
@@ -22,6 +23,7 @@ const _handleExpressions = (
   xmls: string[],
   indentLevel: number,
   print: (xml: string) => void,
+  printVm: (vm: string) => void,
 ): number => {
   if (parseSingleLineXml(xmls[0]).value === ')') {
     return 0;
@@ -29,11 +31,11 @@ const _handleExpressions = (
 
   let _cursor = 0;
 
-  _cursor += compileExpression(xmls, indentLevel, print);
+  _cursor += compileExpression(xmls, indentLevel, print, printVm);
 
   if (parseSingleLineXml(xmls[_cursor]).value === ',') {
     print(indentation(xmls[_cursor++], indentLevel - 1)); // ,
-    _cursor += _handleExpressions(xmls.slice(_cursor), indentLevel, print);
+    _cursor += _handleExpressions(xmls.slice(_cursor), indentLevel, print, printVm);
   }
 
   return _cursor;

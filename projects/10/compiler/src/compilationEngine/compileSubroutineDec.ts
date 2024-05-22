@@ -8,6 +8,7 @@ export const compileSubroutineDec = (
   xmls: string[],
   indentLevel: number,
   print: (xml: string) => void,
+  printVm: (vm: string) => void,
 ): number => {
   print(indentation('<subroutineDec>', indentLevel - 1));
 
@@ -20,8 +21,8 @@ export const compileSubroutineDec = (
   print(indentation(typeXml, indentLevel));
   print(indentation(subroutineNameXml, indentLevel));
 
-  cursor += compileParameterList(xmls.slice(cursor), indentLevel + 1, print);
-  cursor += _compileSubroutineBody(xmls.slice(cursor), indentLevel + 1, print);
+  cursor += compileParameterList(xmls.slice(cursor), indentLevel + 1, print, printVm);
+  cursor += _compileSubroutineBody(xmls.slice(cursor), indentLevel + 1, print, printVm);
 
   print(indentation('</subroutineDec>', indentLevel - 1));
 
@@ -32,6 +33,7 @@ const _compileSubroutineBody = (
   xmls: string[],
   indentLevel: number,
   print: (xml: string) => void,
+  printVm: (vm: string) => void,
 ): number => {
   print(indentation('<subroutineBody>', indentLevel - 1));
 
@@ -39,7 +41,7 @@ const _compileSubroutineBody = (
   const subroutineBodyStartSymbolXml = xmls[cursor++];
   print(indentation(subroutineBodyStartSymbolXml, indentLevel));
 
-  cursor += _handleSubroutineBody(xmls.slice(cursor), indentLevel, print);
+  cursor += _handleSubroutineBody(xmls.slice(cursor), indentLevel, print, printVm);
 
   print(indentation(xmls[cursor++], indentLevel));
   print(indentation('</subroutineBody>', indentLevel - 1));
@@ -51,6 +53,7 @@ const _handleSubroutineBody = (
   xmls: string[],
   indentLevel: number,
   print: (xml: string) => void,
+  printVm: (vm: string) => void,
 ): number => {
   let _cursor = 0;
   const nextXml = xmls[_cursor];
@@ -61,13 +64,13 @@ const _handleSubroutineBody = (
   const { value } = parseSingleLineXml(xmls[_cursor]);
 
   if (value === 'var') {
-    _cursor += compileVarDec(xmls.slice(_cursor), indentLevel + 1, print);
-    _cursor += _handleSubroutineBody(xmls.slice(_cursor), indentLevel, print);
+    _cursor += compileVarDec(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+    _cursor += _handleSubroutineBody(xmls.slice(_cursor), indentLevel, print, printVm);
   }
 
   if (['let', 'if', 'while', 'do', 'return'].includes(value)) {
     print(indentation('<statements>', indentLevel));
-    _cursor += _handleSubroutineStatements(xmls.slice(_cursor), indentLevel, print);
+    _cursor += _handleSubroutineStatements(xmls.slice(_cursor), indentLevel, print, printVm);
     print(indentation('</statements>', indentLevel));
   }
 
@@ -78,6 +81,7 @@ const _handleSubroutineStatements = (
   xmls: string[],
   indentLevel: number,
   print: (xml: string) => void,
+  printVm: (vm: string) => void,
 ): number => {
   let _cursor = 0;
   const nextXml = xmls[_cursor];
@@ -89,8 +93,8 @@ const _handleSubroutineStatements = (
   const { value } = parseSingleLineXml(nextXml);
 
   if (['let', 'if', 'while', 'do', 'return'].includes(value)) {
-    _cursor += compileStatements(xmls.slice(_cursor), indentLevel + 1, print);
-    _cursor += _handleSubroutineStatements(xmls.slice(_cursor), indentLevel, print);
+    _cursor += compileStatements(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+    _cursor += _handleSubroutineStatements(xmls.slice(_cursor), indentLevel, print, printVm);
   }
 
   return _cursor;

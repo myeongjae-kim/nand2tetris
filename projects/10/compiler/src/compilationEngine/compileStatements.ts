@@ -7,14 +7,16 @@ export const compileStatements = (
   xmls: string[],
   indentLevel: number,
   print: (xml: string) => void,
+  printVm: (vm: string) => void,
 ): number => {
-  return _handleStatements(xmls, indentLevel + 1, print);
+  return _handleStatements(xmls, indentLevel + 1, print, printVm);
 };
 
 const _handleStatements = (
   xmls: string[],
   indentLevel: number,
   print: (xml: string) => void,
+  printVm: (vm: string) => void,
 ): number => {
   let _cursor = 0;
   const nextXml = xmls[_cursor++];
@@ -34,11 +36,11 @@ const _handleStatements = (
       print(indentation(xmls[_cursor++], indentLevel));
       if (parseSingleLineXml(xmls[_cursor]).value === '[') {
         print(indentation(xmls[_cursor++], indentLevel)); // [
-        _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print);
+        _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print, printVm);
         print(indentation(xmls[_cursor++], indentLevel)); // ]
       }
       print(indentation(xmls[_cursor++], indentLevel)); // =
-      _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print);
+      _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print, printVm);
       print(indentation(xmls[_cursor++], indentLevel));
 
       print(indentation('</letStatement>', indentLevel - 1));
@@ -50,12 +52,12 @@ const _handleStatements = (
 
       print(indentation(nextXml, indentLevel)); // if
       print(indentation(xmls[_cursor++], indentLevel)); // (
-      _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print);
+      _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print, printVm);
       print(indentation(xmls[_cursor++], indentLevel)); // )
 
       print(indentation(xmls[_cursor++], indentLevel));
       print(indentation('<statements>', indentLevel));
-      _cursor += compileStatements(xmls.slice(_cursor), indentLevel + 1, print);
+      _cursor += compileStatements(xmls.slice(_cursor), indentLevel + 1, print, printVm);
       print(indentation('</statements>', indentLevel));
       print(indentation(xmls[_cursor++], indentLevel));
 
@@ -63,7 +65,7 @@ const _handleStatements = (
         print(indentation(xmls[_cursor++], indentLevel)); // else
         print(indentation(xmls[_cursor++], indentLevel)); // {
         print(indentation('<statements>', indentLevel));
-        _cursor += compileStatements(xmls.slice(_cursor), indentLevel + 1, print);
+        _cursor += compileStatements(xmls.slice(_cursor), indentLevel + 1, print, printVm);
         print(indentation('</statements>', indentLevel));
         print(indentation(xmls[_cursor++], indentLevel)); // }
       }
@@ -77,12 +79,12 @@ const _handleStatements = (
 
       print(indentation(nextXml, indentLevel)); // while
       print(indentation(xmls[_cursor++], indentLevel)); // (
-      _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print);
+      _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print, printVm);
       print(indentation(xmls[_cursor++], indentLevel)); // )
 
       print(indentation(xmls[_cursor++], indentLevel));
       print(indentation('<statements>', indentLevel));
-      _cursor += compileStatements(xmls.slice(_cursor), indentLevel + 1, print);
+      _cursor += compileStatements(xmls.slice(_cursor), indentLevel + 1, print, printVm);
       print(indentation('</statements>', indentLevel));
       print(indentation(xmls[_cursor++], indentLevel));
 
@@ -101,7 +103,7 @@ const _handleStatements = (
       }
 
       print(indentation(xmls[_cursor++], indentLevel)); // parenthesis open
-      _cursor += compileExpressionList(xmls.slice(_cursor), indentLevel + 1, print);
+      _cursor += compileExpressionList(xmls.slice(_cursor), indentLevel + 1, print, printVm);
       print(indentation(xmls[_cursor++], indentLevel)); // parenthesis close
       print(indentation(xmls[_cursor++], indentLevel)); // semicolon
 
@@ -115,7 +117,7 @@ const _handleStatements = (
       print(indentation(nextXml, indentLevel)); // return
 
       if (parseSingleLineXml(xmls[_cursor]).value !== ';') {
-        _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print);
+        _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print, printVm);
       }
 
       print(indentation(xmls[_cursor++], indentLevel)); // semicolon
@@ -128,5 +130,5 @@ const _handleStatements = (
       throw new Error('Invalid XML.');
   }
 
-  return _cursor + _handleStatements(xmls.slice(_cursor), indentLevel, print);
+  return _cursor + _handleStatements(xmls.slice(_cursor), indentLevel, print, printVm);
 };

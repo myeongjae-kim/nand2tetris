@@ -7,6 +7,7 @@ export const compileClass = (
   xmls: string[],
   indentLevel: number,
   print: (xml: string) => void,
+  printVm: (vm: string) => void,
 ): void => {
   if (xmls.length === 0) {
     throw Error('Invalid XML.');
@@ -22,7 +23,7 @@ export const compileClass = (
   print(indentation(identifierXml, indentLevel));
   print(indentation(curlyBraceStartXml, indentLevel));
 
-  cursor += _compileClass(xmls.slice(cursor), indentLevel, print);
+  cursor += _compileClass(xmls.slice(cursor), indentLevel, print, printVm);
 
   print(indentation(xmls[cursor++], indentLevel)); // }
   print(indentation('</class>', indentLevel - 1));
@@ -34,6 +35,7 @@ const _compileClass = (
   xmls: string[],
   indentLevel: number,
   print: (xml: string) => void,
+  printVm: (vm: string) => void,
 ): number => {
   let cursor = 0;
   let nextXml = xmls[cursor];
@@ -45,11 +47,11 @@ const _compileClass = (
   const { value } = parseSingleLineXml(nextXml);
 
   if (['static', 'field'].includes(value)) {
-    cursor += compileClassVarDec(xmls.slice(cursor), indentLevel + 1, print);
+    cursor += compileClassVarDec(xmls.slice(cursor), indentLevel + 1, print, printVm);
   }
 
   if (['constructor', 'function', 'method'].includes(value)) {
-    cursor += compileSubroutineDec(xmls.slice(cursor), indentLevel + 1, print);
+    cursor += compileSubroutineDec(xmls.slice(cursor), indentLevel + 1, print, printVm);
   }
 
   nextXml = xmls[cursor];
@@ -57,7 +59,7 @@ const _compileClass = (
     return cursor;
   }
 
-  const cursorProcessed = _compileClass(xmls.slice(cursor), indentLevel, print);
+  const cursorProcessed = _compileClass(xmls.slice(cursor), indentLevel, print, printVm);
 
   return cursor + cursorProcessed;
 };

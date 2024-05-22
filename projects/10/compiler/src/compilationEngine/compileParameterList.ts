@@ -5,13 +5,14 @@ export const compileParameterList = (
   xmls: string[],
   indentLevel: number,
   print: (xml: string) => void,
+  printVm: (vm: string) => void,
 ): number => {
   let cursor = 0;
 
   print(indentation(xmls[cursor++], indentLevel - 1)); // (
   print(indentation('<parameterList>', indentLevel - 1));
 
-  cursor += _handleParameterList(xmls.slice(cursor), indentLevel, print);
+  cursor += _handleParameterList(xmls.slice(cursor), indentLevel, print, printVm);
 
   print(indentation('</parameterList>', indentLevel - 1));
   print(indentation(xmls[cursor++], indentLevel - 1)); // )
@@ -23,6 +24,7 @@ const _handleParameterList = (
   xmls: string[],
   indentLevel: number,
   print: (xml: string) => void,
+  printVm: (vm: string) => void,
 ): number => {
   let _cursor = 0;
 
@@ -36,7 +38,7 @@ const _handleParameterList = (
 
   print(indentation(xmls[_cursor++], indentLevel)); // type
   print(indentation(xmls[_cursor++], indentLevel)); // varName
-  _cursor += _handleParameterList(xmls.slice(_cursor), indentLevel, print);
+  _cursor += _handleParameterList(xmls.slice(_cursor), indentLevel, print, printVm);
 
   return _cursor;
 };
