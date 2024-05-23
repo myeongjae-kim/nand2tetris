@@ -11,12 +11,15 @@ export const compileExpressionList = (
   subroutineSymbolTable: SubroutineSymbolTable,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
-): number => {
+): {
+  cursorProcessed: number;
+  totalExpressions: number;
+} => {
   let cursor = 0;
 
   print(indentation('<expressionList>', indentLevel - 1));
 
-  cursor += _handleExpressions(
+  const result = _handleExpressions(
     xmls,
     indentLevel + 1,
     classSymbolTable,
@@ -25,9 +28,14 @@ export const compileExpressionList = (
     printVm,
   );
 
+  cursor += result.cursorProcessed;
+
   print(indentation('</expressionList>', indentLevel - 1));
 
-  return cursor;
+  return {
+    cursorProcessed: cursor,
+    totalExpressions: result.totalExpressions,
+  };
 };
 
 const _handleExpressions = (
@@ -37,12 +45,19 @@ const _handleExpressions = (
   subroutineSymbolTable: SubroutineSymbolTable,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
-): number => {
+): {
+  cursorProcessed: number;
+  totalExpressions: number;
+} => {
   if (parseSingleLineXml(xmls[0]).value === ')') {
-    return 0;
+    return {
+      cursorProcessed: 0,
+      totalExpressions: 0,
+    };
   }
 
   let _cursor = 0;
+  let totalExpressions = 1;
 
   _cursor += compileExpression(
     xmls,
@@ -55,7 +70,7 @@ const _handleExpressions = (
 
   if (parseSingleLineXml(xmls[_cursor]).value === ',') {
     print(indentation(xmls[_cursor++], indentLevel - 1)); // ,
-    _cursor += _handleExpressions(
+    const result = _handleExpressions(
       xmls.slice(_cursor),
       indentLevel,
       classSymbolTable,
@@ -63,7 +78,13 @@ const _handleExpressions = (
       print,
       printVm,
     );
+
+    _cursor += result.cursorProcessed;
+    totalExpressions += result.totalExpressions;
   }
 
-  return _cursor;
+  return {
+    cursorProcessed: _cursor,
+    totalExpressions,
+  };
 };

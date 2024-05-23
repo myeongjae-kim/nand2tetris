@@ -110,7 +110,7 @@ const _handleTerm = (
           subroutineSymbolTable,
           print,
           printVm,
-        );
+        ).cursorProcessed;
         print(indentation(xmls[_cursor++], indentLevel)); // )
       }
 

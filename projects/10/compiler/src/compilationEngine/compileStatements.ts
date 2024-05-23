@@ -170,7 +170,7 @@ const _handleStatements = (
       }
 
       print(indentation(xmls[_cursor++], indentLevel)); // parenthesis open
-      _cursor += compileExpressionList(
+      const result = compileExpressionList(
         xmls.slice(_cursor),
         indentLevel + 1,
         classSymbolTable,
@@ -178,13 +178,13 @@ const _handleStatements = (
         print,
         printVm,
       );
-      const totalParams = 1; // TODO: 실제 parameter 개수로 수정
+      _cursor += result.cursorProcessed;
       print(indentation(xmls[_cursor++], indentLevel)); // parenthesis close
       print(indentation(xmls[_cursor++], indentLevel)); // semicolon
 
       print(indentation('</doStatement>', indentLevel - 1));
 
-      printVm(vmWriter.writeCall(functionName, totalParams));
+      printVm(vmWriter.writeCall(functionName, result.totalExpressions));
       printVm(vmWriter.writePop('temp', 0));
 
       break;
