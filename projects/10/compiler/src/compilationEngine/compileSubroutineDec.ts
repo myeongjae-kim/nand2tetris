@@ -29,16 +29,7 @@ export const compileSubroutineDec = (
     parseSingleLineXml(subroutineNameXml).value,
   );
 
-  // TODO: parameter 개수 세기
   cursor += compileParameterList(xmls.slice(cursor), indentLevel + 1, print, printVm);
-
-  printVm(
-    vmWriter.writeFunction(
-      classSymbolTable.className,
-      subroutineSymbolTable.subroutineName,
-      0, // TODO: 하드코딩된 매개변수 개수 변경
-    ),
-  );
 
   cursor += _compileSubroutineBody(
     xmls.slice(cursor),
@@ -102,7 +93,22 @@ const _handleSubroutineBody = (
     return _cursor;
   }
 
-  _cursor += compileVarDec(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+  _cursor += compileVarDec(
+    xmls.slice(_cursor),
+    indentLevel + 1,
+    classSymbolTable,
+    subroutineSymbolTable,
+    print,
+    printVm,
+  );
+
+  printVm(
+    vmWriter.writeFunction(
+      classSymbolTable.className,
+      subroutineSymbolTable.subroutineName,
+      0, // TODO: 하드코딩된 매개변수 개수 변경
+    ),
+  );
 
   const { value } = parseSingleLineXml(xmls[_cursor]);
 
