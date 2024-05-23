@@ -78,6 +78,8 @@ const _handleTerm = (
           print,
           printVm,
         );
+
+        _value === '-' && printVm('neg');
       }
 
       break;
