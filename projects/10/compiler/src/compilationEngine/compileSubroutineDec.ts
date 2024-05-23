@@ -93,7 +93,7 @@ const _handleSubroutineBody = (
     return _cursor;
   }
 
-  _cursor += compileVarDec(
+  const varDecResult = compileVarDec(
     xmls.slice(_cursor),
     indentLevel + 1,
     classSymbolTable,
@@ -102,11 +102,13 @@ const _handleSubroutineBody = (
     printVm,
   );
 
+  _cursor += varDecResult.cursorProcessed;
+
   printVm(
     vmWriter.writeFunction(
       classSymbolTable.className,
       subroutineSymbolTable.subroutineName,
-      0, // TODO: 하드코딩된 매개변수 개수 변경
+      varDecResult.totalVarDecs,
     ),
   );
 

@@ -6,7 +6,10 @@ export const handleVarDecs = (
   indentLevel: number,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
-): number => {
+): {
+  cursorProcessed: number;
+  totalVarDecs: number;
+} => {
   let cursor = 0;
   const staticOrFieldXml = xmls[cursor++];
   const typeXml = xmls[cursor++];
@@ -14,9 +17,12 @@ export const handleVarDecs = (
   print(indentation(staticOrFieldXml, indentLevel));
   print(indentation(typeXml, indentLevel));
 
-  cursor += _handleVarDecs(xmls.slice(cursor), indentLevel, print, printVm);
+  const result = _handleVarDecs(xmls.slice(cursor), indentLevel, print, printVm);
 
-  return cursor;
+  return {
+    cursorProcessed: cursor + result.cursorProcessed,
+    totalVarDecs: result.totalVarDecs,
+  };
 };
 
 const _handleVarDecs = (
@@ -24,14 +30,23 @@ const _handleVarDecs = (
   indentLevel: number,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
-): number => {
+): {
+  cursorProcessed: number;
+  totalVarDecs: number;
+} => {
   let _cursor = 0;
   print(indentation(xmls[_cursor++], indentLevel));
   print(indentation(xmls[_cursor++], indentLevel));
+  let totalVarDecs = 1;
 
   if (parseSingleLineXml(xmls[_cursor - 1]).value === ',') {
-    _cursor += _handleVarDecs(xmls.slice(_cursor), indentLevel, print, printVm);
+    const result = _handleVarDecs(xmls.slice(_cursor), indentLevel, print, printVm);
+    _cursor += result.cursorProcessed;
+    totalVarDecs += result.totalVarDecs;
   }
 
-  return _cursor;
+  return {
+    cursorProcessed: _cursor,
+    totalVarDecs,
+  };
 };

@@ -8,7 +8,7 @@ export const compileClassVarDec = (
   printVm: (vm: string) => void,
 ): number => {
   print(indentation('<classVarDec>', indentLevel - 1));
-  const cursorProcessed = handleVarDecs(xmls, indentLevel, print, printVm);
+  const cursorProcessed = handleVarDecs(xmls, indentLevel, print, printVm).cursorProcessed;
   print(indentation('</classVarDec>', indentLevel - 1));
 
   return cursorProcessed;

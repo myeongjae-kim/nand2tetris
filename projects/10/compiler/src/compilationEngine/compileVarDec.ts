@@ -11,27 +11,36 @@ export const compileVarDec = (
   subroutineSymbolTable: SubroutineSymbolTable,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
-): number => {
+): {
+  cursorProcessed: number;
+  totalVarDecs: number;
+} => {
   let cursor = 0;
   const { value } = parseSingleLineXml(xmls[cursor]);
 
   if (value !== 'var') {
-    return cursor;
+    return {
+      cursorProcessed: cursor,
+      totalVarDecs: 0,
+    };
   }
 
   print(indentation('<varDec>', indentLevel - 1));
-  cursor += handleVarDecs(xmls, indentLevel, print, printVm);
+  const eachVarDecResult = handleVarDecs(xmls, indentLevel, print, printVm);
+  cursor += eachVarDecResult.cursorProcessed;
   print(indentation('</varDec>', indentLevel - 1));
 
-  return (
-    cursor +
-    compileVarDec(
-      xmls.slice(cursor),
-      indentLevel,
-      classSymbolTable,
-      subroutineSymbolTable,
-      print,
-      printVm,
-    )
+  const otherVarDecsResult = compileVarDec(
+    xmls.slice(cursor),
+    indentLevel,
+    classSymbolTable,
+    subroutineSymbolTable,
+    print,
+    printVm,
   );
+
+  return {
+    cursorProcessed: cursor + otherVarDecsResult.cursorProcessed,
+    totalVarDecs: eachVarDecResult.totalVarDecs + otherVarDecsResult.totalVarDecs,
+  };
 };
