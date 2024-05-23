@@ -102,19 +102,9 @@ const _handleSubroutineBody = (
     return _cursor;
   }
 
-  const { value } = parseSingleLineXml(xmls[_cursor]);
+  _cursor += compileVarDec(xmls.slice(_cursor), indentLevel + 1, print, printVm);
 
-  if (value === 'var') {
-    _cursor += compileVarDec(xmls.slice(_cursor), indentLevel + 1, print, printVm);
-    _cursor += _handleSubroutineBody(
-      xmls.slice(_cursor),
-      indentLevel,
-      classSymbolTable,
-      subroutineSymbolTable,
-      print,
-      printVm,
-    );
-  }
+  const { value } = parseSingleLineXml(xmls[_cursor]);
 
   if (['let', 'if', 'while', 'do', 'return'].includes(value)) {
     print(indentation('<statements>', indentLevel));

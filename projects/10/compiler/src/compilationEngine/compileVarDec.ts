@@ -1,5 +1,6 @@
 import { indentation } from '../utils/indentation';
 import { handleVarDecs } from './handleVarDecs';
+import { parseSingleLineXml } from '../utils/parseSingleLineXml';
 
 export const compileVarDec = (
   xmls: string[],
@@ -7,9 +8,16 @@ export const compileVarDec = (
   print: (xml: string) => void,
   printVm: (vm: string) => void,
 ): number => {
+  let cursor = 0;
+  const { value } = parseSingleLineXml(xmls[cursor]);
+
+  if (value !== 'var') {
+    return cursor;
+  }
+
   print(indentation('<varDec>', indentLevel - 1));
-  const cursorProcessed = handleVarDecs(xmls, indentLevel, print, printVm);
+  cursor += handleVarDecs(xmls, indentLevel, print, printVm);
   print(indentation('</varDec>', indentLevel - 1));
 
-  return cursorProcessed;
+  return cursor + compileVarDec(xmls.slice(cursor), indentLevel, print, printVm);
 };
