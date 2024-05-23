@@ -88,30 +88,35 @@ const _handleTerm = (
     case 'stringConstant':
     case 'keyword':
     case 'identifier': {
+      let functionName = parseSingleLineXml(xmls[_cursor]).value;
       print(indentation(xmls[_cursor++], indentLevel));
 
-      //// printVm Start
       tag === 'integerConstant' &&
         printVm(vmWriter.writePush('constant', parseSingleLineXml(xmls[_cursor - 1]).value));
 
-      //// printVm End
-
       if (parseSingleLineXml(xmls[_cursor]).value === '.') {
+        functionName += parseSingleLineXml(xmls[_cursor]).value;
         print(indentation(xmls[_cursor++], indentLevel));
+        functionName += parseSingleLineXml(xmls[_cursor]).value;
         print(indentation(xmls[_cursor++], indentLevel));
       }
 
       if (parseSingleLineXml(xmls[_cursor]).value === '(') {
         print(indentation(xmls[_cursor++], indentLevel)); // (
-        _cursor += compileExpressionList(
+        const result = compileExpressionList(
           xmls.slice(_cursor),
           indentLevel + 1,
           classSymbolTable,
           subroutineSymbolTable,
           print,
           printVm,
-        ).cursorProcessed;
+        );
+        _cursor += result.cursorProcessed;
         print(indentation(xmls[_cursor++], indentLevel)); // )
+
+        printVm(vmWriter.writeCall(functionName, result.totalExpressions));
+        printVm(vmWriter.writePop('local', 0));
+        printVm(vmWriter.writePush('local', 0));
       }
 
       if (parseSingleLineXml(xmls[_cursor]).value === '[') {
