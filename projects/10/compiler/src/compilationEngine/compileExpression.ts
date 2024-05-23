@@ -1,16 +1,28 @@
 import { indentation } from '../utils/indentation';
 import { parseSingleLineXml } from '../utils/parseSingleLineXml';
 import { compileExpressionList } from './compileExpressionList';
+import { ClassSymbolTable } from './model/ClassSymbolTable';
+import { SubroutineSymbolTable } from './model/SubroutineSymbolTable';
+import { vmWriter } from './model/VmWriter';
 
 export const compileExpression = (
   xmls: string[],
   indentLevel: number,
+  classSymbolTable: ClassSymbolTable,
+  subroutineSymbolTable: SubroutineSymbolTable,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
 ): number => {
   print(indentation('<expression>', indentLevel - 1));
 
-  const cursorProcessed = _handleTerm(xmls, indentLevel + 1, print, printVm);
+  const cursorProcessed = _handleTerm(
+    xmls,
+    indentLevel + 1,
+    classSymbolTable,
+    subroutineSymbolTable,
+    print,
+    printVm,
+  );
 
   print(indentation('</expression>', indentLevel - 1));
 
@@ -20,6 +32,8 @@ export const compileExpression = (
 const _handleTerm = (
   xmls: string[],
   indentLevel: number,
+  classSymbolTable: ClassSymbolTable,
+  subroutineSymbolTable: SubroutineSymbolTable,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
 ): number => {
@@ -38,7 +52,14 @@ const _handleTerm = (
       const { value: _value } = parseSingleLineXml(xmls[_cursor]);
       if (_value === '(') {
         print(indentation(xmls[_cursor++], indentLevel)); // (
-        _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+        _cursor += compileExpression(
+          xmls.slice(_cursor),
+          indentLevel + 1,
+          classSymbolTable,
+          subroutineSymbolTable,
+          print,
+          printVm,
+        );
 
         if (parseSingleLineXml(xmls[_cursor]).value === ')') {
           print(indentation(xmls[_cursor++], indentLevel)); // )
@@ -49,7 +70,14 @@ const _handleTerm = (
 
       if (operators.includes(_value)) {
         print(indentation(xmls[_cursor++], indentLevel));
-        _cursor += _handleTerm(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+        _cursor += _handleTerm(
+          xmls.slice(_cursor),
+          indentLevel + 1,
+          classSymbolTable,
+          subroutineSymbolTable,
+          print,
+          printVm,
+        );
       }
 
       break;
@@ -60,6 +88,12 @@ const _handleTerm = (
     case 'identifier': {
       print(indentation(xmls[_cursor++], indentLevel));
 
+      //// printVm Start
+      tag === 'integerConstant' &&
+        printVm(vmWriter.writePush('constant', parseSingleLineXml(xmls[_cursor - 1]).value));
+
+      //// printVm End
+
       if (parseSingleLineXml(xmls[_cursor]).value === '.') {
         print(indentation(xmls[_cursor++], indentLevel));
         print(indentation(xmls[_cursor++], indentLevel));
@@ -67,13 +101,27 @@ const _handleTerm = (
 
       if (parseSingleLineXml(xmls[_cursor]).value === '(') {
         print(indentation(xmls[_cursor++], indentLevel)); // (
-        _cursor += compileExpressionList(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+        _cursor += compileExpressionList(
+          xmls.slice(_cursor),
+          indentLevel + 1,
+          classSymbolTable,
+          subroutineSymbolTable,
+          print,
+          printVm,
+        );
         print(indentation(xmls[_cursor++], indentLevel)); // )
       }
 
       if (parseSingleLineXml(xmls[_cursor]).value === '[') {
         print(indentation(xmls[_cursor++], indentLevel)); // [
-        _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+        _cursor += compileExpression(
+          xmls.slice(_cursor),
+          indentLevel + 1,
+          classSymbolTable,
+          subroutineSymbolTable,
+          print,
+          printVm,
+        );
         print(indentation(xmls[_cursor++], indentLevel)); // ]
       }
       break;
@@ -84,8 +132,20 @@ const _handleTerm = (
   print(indentation('</term>', indentLevel - 1));
 
   if (operators.includes(parseSingleLineXml(xmls[_cursor]).value)) {
+    const operator = parseSingleLineXml(xmls[_cursor]).value;
+
     print(indentation(xmls[_cursor++], indentLevel - 1)); // print operator
-    _cursor += _handleTerm(xmls.slice(_cursor), indentLevel, print, printVm);
+    _cursor += _handleTerm(
+      xmls.slice(_cursor),
+      indentLevel,
+      classSymbolTable,
+      subroutineSymbolTable,
+      print,
+      printVm,
+    );
+
+    operator === '*' && printVm(vmWriter.writeCall('Math.multiply', 2));
+    operator === '+' && printVm('add');
   }
 
   return _cursor;

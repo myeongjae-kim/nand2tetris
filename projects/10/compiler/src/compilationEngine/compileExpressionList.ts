@@ -1,10 +1,14 @@
 import { indentation } from '../utils/indentation';
 import { parseSingleLineXml } from '../utils/parseSingleLineXml';
 import { compileExpression } from './compileExpression';
+import { ClassSymbolTable } from './model/ClassSymbolTable';
+import { SubroutineSymbolTable } from './model/SubroutineSymbolTable';
 
 export const compileExpressionList = (
   xmls: string[],
   indentLevel: number,
+  classSymbolTable: ClassSymbolTable,
+  subroutineSymbolTable: SubroutineSymbolTable,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
 ): number => {
@@ -12,7 +16,14 @@ export const compileExpressionList = (
 
   print(indentation('<expressionList>', indentLevel - 1));
 
-  cursor += _handleExpressions(xmls, indentLevel + 1, print, printVm);
+  cursor += _handleExpressions(
+    xmls,
+    indentLevel + 1,
+    classSymbolTable,
+    subroutineSymbolTable,
+    print,
+    printVm,
+  );
 
   print(indentation('</expressionList>', indentLevel - 1));
 
@@ -22,6 +33,8 @@ export const compileExpressionList = (
 const _handleExpressions = (
   xmls: string[],
   indentLevel: number,
+  classSymbolTable: ClassSymbolTable,
+  subroutineSymbolTable: SubroutineSymbolTable,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
 ): number => {
@@ -31,11 +44,25 @@ const _handleExpressions = (
 
   let _cursor = 0;
 
-  _cursor += compileExpression(xmls, indentLevel, print, printVm);
+  _cursor += compileExpression(
+    xmls,
+    indentLevel,
+    classSymbolTable,
+    subroutineSymbolTable,
+    print,
+    printVm,
+  );
 
   if (parseSingleLineXml(xmls[_cursor]).value === ',') {
     print(indentation(xmls[_cursor++], indentLevel - 1)); // ,
-    _cursor += _handleExpressions(xmls.slice(_cursor), indentLevel, print, printVm);
+    _cursor += _handleExpressions(
+      xmls.slice(_cursor),
+      indentLevel,
+      classSymbolTable,
+      subroutineSymbolTable,
+      print,
+      printVm,
+    );
   }
 
   return _cursor;

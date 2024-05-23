@@ -1,5 +1,5 @@
 class VmWriter {
-  public writePush(segment: string, index: number): string {
+  public writePush(segment: string, index: number | string): string {
     return `push ${segment} ${index}`;
   }
 

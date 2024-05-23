@@ -2,19 +2,33 @@ import { parseSingleLineXml } from '../utils/parseSingleLineXml';
 import { indentation } from '../utils/indentation';
 import { compileExpression } from './compileExpression';
 import { compileExpressionList } from './compileExpressionList';
+import { ClassSymbolTable } from './model/ClassSymbolTable';
+import { SubroutineSymbolTable } from './model/SubroutineSymbolTable';
+import { vmWriter } from './model/VmWriter';
 
 export const compileStatements = (
   xmls: string[],
   indentLevel: number,
+  classSymbolTable: ClassSymbolTable,
+  subroutineSymbolTable: SubroutineSymbolTable,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
 ): number => {
-  return _handleStatements(xmls, indentLevel + 1, print, printVm);
+  return _handleStatements(
+    xmls,
+    indentLevel + 1,
+    classSymbolTable,
+    subroutineSymbolTable,
+    print,
+    printVm,
+  );
 };
 
 const _handleStatements = (
   xmls: string[],
   indentLevel: number,
+  classSymbolTable: ClassSymbolTable,
+  subroutineSymbolTable: SubroutineSymbolTable,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
 ): number => {
@@ -36,11 +50,25 @@ const _handleStatements = (
       print(indentation(xmls[_cursor++], indentLevel));
       if (parseSingleLineXml(xmls[_cursor]).value === '[') {
         print(indentation(xmls[_cursor++], indentLevel)); // [
-        _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+        _cursor += compileExpression(
+          xmls.slice(_cursor),
+          indentLevel + 1,
+          classSymbolTable,
+          subroutineSymbolTable,
+          print,
+          printVm,
+        );
         print(indentation(xmls[_cursor++], indentLevel)); // ]
       }
       print(indentation(xmls[_cursor++], indentLevel)); // =
-      _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+      _cursor += compileExpression(
+        xmls.slice(_cursor),
+        indentLevel + 1,
+        classSymbolTable,
+        subroutineSymbolTable,
+        print,
+        printVm,
+      );
       print(indentation(xmls[_cursor++], indentLevel));
 
       print(indentation('</letStatement>', indentLevel - 1));
@@ -52,12 +80,26 @@ const _handleStatements = (
 
       print(indentation(nextXml, indentLevel)); // if
       print(indentation(xmls[_cursor++], indentLevel)); // (
-      _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+      _cursor += compileExpression(
+        xmls.slice(_cursor),
+        indentLevel + 1,
+        classSymbolTable,
+        subroutineSymbolTable,
+        print,
+        printVm,
+      );
       print(indentation(xmls[_cursor++], indentLevel)); // )
 
       print(indentation(xmls[_cursor++], indentLevel));
       print(indentation('<statements>', indentLevel));
-      _cursor += compileStatements(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+      _cursor += compileStatements(
+        xmls.slice(_cursor),
+        indentLevel + 1,
+        classSymbolTable,
+        subroutineSymbolTable,
+        print,
+        printVm,
+      );
       print(indentation('</statements>', indentLevel));
       print(indentation(xmls[_cursor++], indentLevel));
 
@@ -65,7 +107,14 @@ const _handleStatements = (
         print(indentation(xmls[_cursor++], indentLevel)); // else
         print(indentation(xmls[_cursor++], indentLevel)); // {
         print(indentation('<statements>', indentLevel));
-        _cursor += compileStatements(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+        _cursor += compileStatements(
+          xmls.slice(_cursor),
+          indentLevel + 1,
+          classSymbolTable,
+          subroutineSymbolTable,
+          print,
+          printVm,
+        );
         print(indentation('</statements>', indentLevel));
         print(indentation(xmls[_cursor++], indentLevel)); // }
       }
@@ -79,12 +128,26 @@ const _handleStatements = (
 
       print(indentation(nextXml, indentLevel)); // while
       print(indentation(xmls[_cursor++], indentLevel)); // (
-      _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+      _cursor += compileExpression(
+        xmls.slice(_cursor),
+        indentLevel + 1,
+        classSymbolTable,
+        subroutineSymbolTable,
+        print,
+        printVm,
+      );
       print(indentation(xmls[_cursor++], indentLevel)); // )
 
       print(indentation(xmls[_cursor++], indentLevel));
       print(indentation('<statements>', indentLevel));
-      _cursor += compileStatements(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+      _cursor += compileStatements(
+        xmls.slice(_cursor),
+        indentLevel + 1,
+        classSymbolTable,
+        subroutineSymbolTable,
+        print,
+        printVm,
+      );
       print(indentation('</statements>', indentLevel));
       print(indentation(xmls[_cursor++], indentLevel));
 
@@ -95,19 +158,34 @@ const _handleStatements = (
     case 'do': {
       print(indentation('<doStatement>', indentLevel - 1));
       print(indentation(nextXml, indentLevel));
+
+      let functionName = parseSingleLineXml(xmls[_cursor]).value;
       print(indentation(xmls[_cursor++], indentLevel));
 
       if (parseSingleLineXml(xmls[_cursor]).value === '.') {
+        functionName += parseSingleLineXml(xmls[_cursor]).value;
         print(indentation(xmls[_cursor++], indentLevel));
+        functionName += parseSingleLineXml(xmls[_cursor]).value;
         print(indentation(xmls[_cursor++], indentLevel));
       }
 
       print(indentation(xmls[_cursor++], indentLevel)); // parenthesis open
-      _cursor += compileExpressionList(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+      _cursor += compileExpressionList(
+        xmls.slice(_cursor),
+        indentLevel + 1,
+        classSymbolTable,
+        subroutineSymbolTable,
+        print,
+        printVm,
+      );
+      const totalParams = 1; // TODO: 실제 parameter 개수로 수정
       print(indentation(xmls[_cursor++], indentLevel)); // parenthesis close
       print(indentation(xmls[_cursor++], indentLevel)); // semicolon
 
       print(indentation('</doStatement>', indentLevel - 1));
+
+      printVm(vmWriter.writeCall(functionName, totalParams));
+      printVm(vmWriter.writePop('temp', 0));
 
       break;
     }
@@ -117,7 +195,14 @@ const _handleStatements = (
       print(indentation(nextXml, indentLevel)); // return
 
       if (parseSingleLineXml(xmls[_cursor]).value !== ';') {
-        _cursor += compileExpression(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+        _cursor += compileExpression(
+          xmls.slice(_cursor),
+          indentLevel + 1,
+          classSymbolTable,
+          subroutineSymbolTable,
+          print,
+          printVm,
+        );
       }
 
       print(indentation(xmls[_cursor++], indentLevel)); // semicolon
@@ -130,5 +215,15 @@ const _handleStatements = (
       throw new Error('Invalid XML.');
   }
 
-  return _cursor + _handleStatements(xmls.slice(_cursor), indentLevel, print, printVm);
+  return (
+    _cursor +
+    _handleStatements(
+      xmls.slice(_cursor),
+      indentLevel,
+      classSymbolTable,
+      subroutineSymbolTable,
+      print,
+      printVm,
+    )
+  );
 };

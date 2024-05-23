@@ -51,6 +51,11 @@ export const compileSubroutineDec = (
 
   print(indentation('</subroutineDec>', indentLevel - 1));
 
+  if (parseSingleLineXml(typeXml).value === 'void') {
+    printVm(vmWriter.writePush('constant', 0));
+    printVm(vmWriter.writeReturn());
+  }
+
   return cursor;
 };
 
@@ -145,7 +150,14 @@ const _handleSubroutineStatements = (
   const { value } = parseSingleLineXml(nextXml);
 
   if (['let', 'if', 'while', 'do', 'return'].includes(value)) {
-    _cursor += compileStatements(xmls.slice(_cursor), indentLevel + 1, print, printVm);
+    _cursor += compileStatements(
+      xmls.slice(_cursor),
+      indentLevel + 1,
+      classSymbolTable,
+      subroutineSymbolTable,
+      print,
+      printVm,
+    );
     _cursor += _handleSubroutineStatements(
       xmls.slice(_cursor),
       indentLevel,
