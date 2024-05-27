@@ -24,6 +24,8 @@ export const compileStatements = (
   );
 };
 
+let currentWhileIndex = 0;
+
 const _handleStatements = (
   xmls: string[],
   indentLevel: number,
@@ -138,6 +140,7 @@ const _handleStatements = (
       print(indentation('<whileStatement>', indentLevel - 1));
 
       print(indentation(nextXml, indentLevel)); // while
+      printVm(vmWriter.writeLabel('WHILE_EXP' + currentWhileIndex));
       print(indentation(xmls[_cursor++], indentLevel)); // (
       _cursor += compileExpression(
         xmls.slice(_cursor),
@@ -148,9 +151,12 @@ const _handleStatements = (
         printVm,
       );
       print(indentation(xmls[_cursor++], indentLevel)); // )
+      printVm(vmWriter.writeArithmetic('not'));
+      printVm(vmWriter.writeIf('WHILE_END' + currentWhileIndex));
 
       print(indentation(xmls[_cursor++], indentLevel));
       print(indentation('<statements>', indentLevel));
+      currentWhileIndex++;
       _cursor += compileStatements(
         xmls.slice(_cursor),
         indentLevel + 1,
@@ -159,10 +165,13 @@ const _handleStatements = (
         print,
         printVm,
       );
+      --currentWhileIndex;
       print(indentation('</statements>', indentLevel));
       print(indentation(xmls[_cursor++], indentLevel));
 
       print(indentation('</whileStatement>', indentLevel - 1));
+      printVm(vmWriter.writeGoto('WHILE_EXP' + currentWhileIndex));
+      printVm(vmWriter.writeLabel('WHILE_END' + currentWhileIndex));
 
       break;
     }
