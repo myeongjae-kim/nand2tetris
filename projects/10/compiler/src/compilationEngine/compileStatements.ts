@@ -25,6 +25,7 @@ export const compileStatements = (
 };
 
 let currentWhileIndex = 0;
+let currentIfIndex = 0;
 
 const _handleStatements = (
   xmls: string[],
@@ -105,6 +106,11 @@ const _handleStatements = (
 
       print(indentation(xmls[_cursor++], indentLevel));
       print(indentation('<statements>', indentLevel));
+
+      printVm(vmWriter.writeIf('IF_TRUE' + currentIfIndex));
+      printVm(vmWriter.writeGoto('IF_FALSE' + currentIfIndex));
+      printVm(vmWriter.writeLabel('IF_TRUE' + currentIfIndex));
+      currentIfIndex++;
       _cursor += compileStatements(
         xmls.slice(_cursor),
         indentLevel + 1,
@@ -113,13 +119,18 @@ const _handleStatements = (
         print,
         printVm,
       );
+      currentIfIndex--;
       print(indentation('</statements>', indentLevel));
       print(indentation(xmls[_cursor++], indentLevel));
+
+      printVm(vmWriter.writeGoto('IF_END' + currentIfIndex));
+      printVm(vmWriter.writeLabel('IF_FALSE' + currentIfIndex));
 
       if (parseSingleLineXml(xmls[_cursor]).value === 'else') {
         print(indentation(xmls[_cursor++], indentLevel)); // else
         print(indentation(xmls[_cursor++], indentLevel)); // {
         print(indentation('<statements>', indentLevel));
+        currentIfIndex++;
         _cursor += compileStatements(
           xmls.slice(_cursor),
           indentLevel + 1,
@@ -128,11 +139,13 @@ const _handleStatements = (
           print,
           printVm,
         );
+        currentIfIndex--;
         print(indentation('</statements>', indentLevel));
         print(indentation(xmls[_cursor++], indentLevel)); // }
       }
 
       print(indentation('</ifStatement>', indentLevel - 1));
+      printVm(vmWriter.writeLabel('IF_END' + currentIfIndex));
 
       break;
     }
