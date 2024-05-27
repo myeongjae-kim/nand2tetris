@@ -48,11 +48,6 @@ export const compileSubroutineDec = (
 
   print(indentation('</subroutineDec>', indentLevel - 1));
 
-  if (parseSingleLineXml(typeXml).value === 'void') {
-    printVm(vmWriter.writePush('constant', 0));
-    printVm(vmWriter.writeReturn());
-  }
-
   return cursor;
 };
 

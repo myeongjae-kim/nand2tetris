@@ -227,7 +227,9 @@ const _handleStatements = (
 
       print(indentation(nextXml, indentLevel)); // return
 
-      if (parseSingleLineXml(xmls[_cursor]).value !== ';') {
+      if (parseSingleLineXml(xmls[_cursor]).value === ';') {
+        printVm(vmWriter.writePush('constant', 0));
+      } else {
         _cursor += compileExpression(
           xmls.slice(_cursor),
           indentLevel + 1,
@@ -241,6 +243,8 @@ const _handleStatements = (
       print(indentation(xmls[_cursor++], indentLevel)); // semicolon
 
       print(indentation('</returnStatement>', indentLevel - 1));
+
+      printVm(vmWriter.writeReturn());
 
       break;
     }

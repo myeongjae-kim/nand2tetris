@@ -105,6 +105,11 @@ const _handleTerm = (
         printVm(vmWriter.writePush('local', indexOfIdentifier));
       }
 
+      if (tag === 'identifier' && subroutineSymbolTable.kindOf(aValue) === 'arg') {
+        const indexOfIdentifier = subroutineSymbolTable.indexOf(aValue);
+        printVm(vmWriter.writePush('argument', indexOfIdentifier));
+      }
+
       if (parseSingleLineXml(xmls[_cursor]).value === '.') {
         aValue += parseSingleLineXml(xmls[_cursor]).value;
         print(indentation(xmls[_cursor++], indentLevel));

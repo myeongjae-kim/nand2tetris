@@ -22,9 +22,6 @@ export const compilationEngine = async ({ tokenXmlPaths, printVmCode }: Args): P
 
       const vms: string[] = [];
       const printVm = (_vm: string) => {
-        if (_vm === 'pop local 0') {
-          console.log('pop local 0');
-        }
         vms.push(_vm);
       };
 
