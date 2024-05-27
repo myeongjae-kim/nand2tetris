@@ -80,6 +80,7 @@ const _handleTerm = (
         );
 
         _value === '-' && printVm('neg');
+        _value === '~' && printVm('not');
       }
 
       break;
@@ -161,6 +162,10 @@ const _handleTerm = (
 
     operator === '*' && printVm(vmWriter.writeCall('Math.multiply', 2));
     operator === '+' && printVm('add');
+    operator === '-' && printVm('sub');
+    operator === '&gt;' && printVm('gt');
+    operator === '&amp;' && printVm('and');
+    operator === '=' && printVm('eq');
   }
 
   return _cursor;
