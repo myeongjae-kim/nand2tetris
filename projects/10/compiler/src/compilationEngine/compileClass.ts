@@ -3,6 +3,7 @@ import { parseSingleLineXml } from '../utils/parseSingleLineXml';
 import { compileClassVarDec } from './compileClassVarDec';
 import { compileSubroutineDec } from './compileSubroutineDec';
 import { ClassSymbolTable } from './model/ClassSymbolTable';
+import { SymbolKind } from './model/SymbolTable';
 
 export const compileClass = (
   xmls: string[],
@@ -52,7 +53,14 @@ const _compileClass = (
   const { value } = parseSingleLineXml(nextXml);
 
   if (['static', 'field'].includes(value)) {
-    cursor += compileClassVarDec(xmls.slice(cursor), indentLevel + 1, print, printVm);
+    cursor += compileClassVarDec(
+      xmls.slice(cursor),
+      indentLevel + 1,
+      classSymbolTable,
+      value as SymbolKind,
+      print,
+      printVm,
+    );
   }
   if (['constructor', 'function', 'method'].includes(value)) {
     cursor += compileSubroutineDec(

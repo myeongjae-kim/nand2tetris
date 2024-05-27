@@ -46,8 +46,10 @@ const _handleStatements = (
   switch (value) {
     case 'let': {
       print(indentation('<letStatement>', indentLevel - 1));
-      print(indentation(nextXml, indentLevel));
-      print(indentation(xmls[_cursor++], indentLevel));
+      print(indentation(nextXml, indentLevel)); // let
+
+      const identifier = parseSingleLineXml(xmls[_cursor]).value;
+      print(indentation(xmls[_cursor++], indentLevel)); // identifier
       if (parseSingleLineXml(xmls[_cursor]).value === '[') {
         print(indentation(xmls[_cursor++], indentLevel)); // [
         _cursor += compileExpression(
@@ -69,7 +71,16 @@ const _handleStatements = (
         print,
         printVm,
       );
-      print(indentation(xmls[_cursor++], indentLevel));
+      // the results of the expression are on the stack
+      const indexOfIdentifier = subroutineSymbolTable.indexOf(identifier);
+      printVm(
+        vmWriter.writePop(
+          subroutineSymbolTable.kindOf(identifier) === 'var' ? 'local' : 'argument',
+          indexOfIdentifier,
+        ),
+      );
+
+      print(indentation(xmls[_cursor++], indentLevel)); // ;
 
       print(indentation('</letStatement>', indentLevel - 1));
 

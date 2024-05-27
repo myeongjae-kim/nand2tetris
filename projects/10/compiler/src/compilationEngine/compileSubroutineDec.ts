@@ -29,7 +29,13 @@ export const compileSubroutineDec = (
     parseSingleLineXml(subroutineNameXml).value,
   );
 
-  cursor += compileParameterList(xmls.slice(cursor), indentLevel + 1, print, printVm);
+  cursor += compileParameterList(
+    xmls.slice(cursor),
+    indentLevel + 1,
+    subroutineSymbolTable,
+    print,
+    printVm,
+  );
 
   cursor += _compileSubroutineBody(
     xmls.slice(cursor),
@@ -98,6 +104,7 @@ const _handleSubroutineBody = (
     indentLevel + 1,
     classSymbolTable,
     subroutineSymbolTable,
+    'var',
     print,
     printVm,
   );

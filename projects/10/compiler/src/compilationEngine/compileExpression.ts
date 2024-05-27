@@ -88,16 +88,26 @@ const _handleTerm = (
     case 'stringConstant':
     case 'keyword':
     case 'identifier': {
-      let functionName = parseSingleLineXml(xmls[_cursor]).value;
+      let aValue = parseSingleLineXml(xmls[_cursor]).value;
       print(indentation(xmls[_cursor++], indentLevel));
 
       tag === 'integerConstant' &&
         printVm(vmWriter.writePush('constant', parseSingleLineXml(xmls[_cursor - 1]).value));
 
+      if (tag === 'keyword' && ['true', 'false'].includes(aValue)) {
+        printVm(vmWriter.writePush('constant', 0));
+        aValue === 'true' && printVm('not');
+      }
+
+      if (tag === 'identifier' && subroutineSymbolTable.kindOf(aValue) === 'var') {
+        const indexOfIdentifier = subroutineSymbolTable.indexOf(aValue);
+        printVm(vmWriter.writePush('local', indexOfIdentifier));
+      }
+
       if (parseSingleLineXml(xmls[_cursor]).value === '.') {
-        functionName += parseSingleLineXml(xmls[_cursor]).value;
+        aValue += parseSingleLineXml(xmls[_cursor]).value;
         print(indentation(xmls[_cursor++], indentLevel));
-        functionName += parseSingleLineXml(xmls[_cursor]).value;
+        aValue += parseSingleLineXml(xmls[_cursor]).value;
         print(indentation(xmls[_cursor++], indentLevel));
       }
 
@@ -114,9 +124,7 @@ const _handleTerm = (
         _cursor += result.cursorProcessed;
         print(indentation(xmls[_cursor++], indentLevel)); // )
 
-        printVm(vmWriter.writeCall(functionName, result.totalExpressions));
-        printVm(vmWriter.writePop('local', 0));
-        printVm(vmWriter.writePush('local', 0));
+        printVm(vmWriter.writeCall(aValue, result.totalExpressions));
       }
 
       if (parseSingleLineXml(xmls[_cursor]).value === '[') {

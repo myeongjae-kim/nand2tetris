@@ -1,4 +1,4 @@
-export type SymbolKind = 'STATIC' | 'FIELD' | 'ARG' | 'VAR';
+export type SymbolKind = 'static' | 'field' | 'arg' | 'var';
 
 export interface SymbolTable {
   define(name: string, type: string, kind: SymbolKind): void;

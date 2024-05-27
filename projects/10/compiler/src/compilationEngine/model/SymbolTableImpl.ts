@@ -10,10 +10,10 @@ export type MySymbol = {
 export class SymbolTableImpl implements SymbolTable {
   private map: Map<SymbolName, MySymbol> = new Map();
   private indices: Record<SymbolKind, number> = {
-    STATIC: 0,
-    FIELD: 0,
-    ARG: 0,
-    VAR: 0,
+    static: 0,
+    field: 0,
+    arg: 0,
+    var: 0,
   };
 
   define(name: string, type: string, kind: SymbolKind): void {
@@ -45,7 +45,7 @@ export class SymbolTableImpl implements SymbolTable {
   indexOf(name: string): number {
     const symbol = this.map.get(name);
     if (!symbol) {
-      throw new Error('Symbol not found');
+      throw new Error('Symbol not found: ' + name);
     }
     return symbol.index;
   }
