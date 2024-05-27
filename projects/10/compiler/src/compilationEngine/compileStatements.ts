@@ -192,13 +192,25 @@ const _handleStatements = (
       print(indentation('<doStatement>', indentLevel - 1));
       print(indentation(nextXml, indentLevel));
 
-      let functionName = parseSingleLineXml(xmls[_cursor]).value;
+      let identifier = parseSingleLineXml(xmls[_cursor]).value;
       print(indentation(xmls[_cursor++], indentLevel));
 
+      let isObject = false;
       if (parseSingleLineXml(xmls[_cursor]).value === '.') {
-        functionName += parseSingleLineXml(xmls[_cursor]).value;
+        try {
+          const variableIndex = subroutineSymbolTable.indexOf(identifier);
+          printVm(vmWriter.writePush('local', variableIndex));
+          isObject = true;
+        } catch (e) {
+          // identifier가 변수가 아닌 경우는 스태틱 메서드를 호출하는 경우다.
+        }
+
+        if (isObject) {
+          identifier = subroutineSymbolTable.typeOf(identifier);
+        }
+        identifier += parseSingleLineXml(xmls[_cursor]).value;
         print(indentation(xmls[_cursor++], indentLevel));
-        functionName += parseSingleLineXml(xmls[_cursor]).value;
+        identifier += parseSingleLineXml(xmls[_cursor]).value;
         print(indentation(xmls[_cursor++], indentLevel));
       }
 
@@ -217,7 +229,7 @@ const _handleStatements = (
 
       print(indentation('</doStatement>', indentLevel - 1));
 
-      printVm(vmWriter.writeCall(functionName, result.totalExpressions));
+      printVm(vmWriter.writeCall(identifier, result.totalExpressions + (isObject ? 1 : 0)));
       printVm(vmWriter.writePop('temp', 0));
 
       break;
