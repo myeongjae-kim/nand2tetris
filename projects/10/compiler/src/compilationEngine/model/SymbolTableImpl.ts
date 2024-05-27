@@ -38,7 +38,7 @@ export class SymbolTableImpl implements SymbolTable {
   typeOf(name: string): string {
     const symbol = this.map.get(name);
     if (!symbol) {
-      throw new Error('Symbol not found');
+      throw new Error('Symbol not found: ' + name);
     }
     return symbol.type;
   }

@@ -4,6 +4,7 @@ import { compileClassVarDec } from './compileClassVarDec';
 import { compileSubroutineDec } from './compileSubroutineDec';
 import { ClassSymbolTable } from './model/ClassSymbolTable';
 import { SymbolKind } from './model/SymbolTable';
+import { isMethodKind } from './model/SubroutineKind';
 
 export const compileClass = (
   xmls: string[],
@@ -52,6 +53,8 @@ const _compileClass = (
 
   const { value } = parseSingleLineXml(nextXml);
 
+  // TODO: static, field 선언만 모아서 처리하기. _compileClass를 재귀적으로 호출하는게 아니라, 클래스 변수만 처리하는 함수를 따로 만들어서 재귀함수로 반복하기
+  //  클래스 변수 개수를 세서 리턴해야 한다.
   if (['static', 'field'].includes(value)) {
     cursor += compileClassVarDec(
       xmls.slice(cursor),
@@ -62,11 +65,13 @@ const _compileClass = (
       printVm,
     );
   }
-  if (['constructor', 'function', 'method'].includes(value)) {
+
+  if (isMethodKind(value)) {
     cursor += compileSubroutineDec(
       xmls.slice(cursor),
       indentLevel + 1,
       classSymbolTable,
+      value,
       print,
       printVm,
     );
@@ -77,6 +82,7 @@ const _compileClass = (
     return cursor;
   }
 
+  // TODO: _compileClass가 아니라 compileSubroutineDec만 재귀적으로 호출하는 함수로 따로 떼내기.
   const cursorProcessed = _compileClass(
     xmls.slice(cursor),
     indentLevel,

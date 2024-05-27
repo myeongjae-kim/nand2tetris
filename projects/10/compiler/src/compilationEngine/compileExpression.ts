@@ -100,6 +100,10 @@ const _handleTerm = (
         aValue === 'true' && printVm('not');
       }
 
+      if (tag === 'keyword' && aValue === 'this') {
+        printVm(vmWriter.writePush('pointer', 0));
+      }
+
       if (tag === 'identifier' && subroutineSymbolTable.kindOf(aValue) === 'var') {
         const indexOfIdentifier = subroutineSymbolTable.indexOf(aValue);
         printVm(vmWriter.writePush('local', indexOfIdentifier));

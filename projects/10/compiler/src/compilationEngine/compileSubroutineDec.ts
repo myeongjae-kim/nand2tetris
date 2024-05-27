@@ -6,11 +6,13 @@ import { compileParameterList } from './compileParameterList';
 import { ClassSymbolTable } from './model/ClassSymbolTable';
 import { SubroutineSymbolTable } from './model/SubroutineSymbolTable';
 import { vmWriter } from './model/VmWriter';
+import { SubroutineKind } from './model/SubroutineKind';
 
 export const compileSubroutineDec = (
   xmls: string[],
   indentLevel: number,
   classSymbolTable: ClassSymbolTable,
+  subroutineKind: SubroutineKind,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
 ): number => {
@@ -42,6 +44,7 @@ export const compileSubroutineDec = (
     indentLevel + 1,
     classSymbolTable,
     subroutineSymbolTable,
+    subroutineKind,
     print,
     printVm,
   );
@@ -56,6 +59,7 @@ const _compileSubroutineBody = (
   indentLevel: number,
   classSymbolTable: ClassSymbolTable,
   subroutineSymbolTable: SubroutineSymbolTable,
+  subroutineKind: SubroutineKind,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
 ): number => {
@@ -70,6 +74,7 @@ const _compileSubroutineBody = (
     indentLevel,
     classSymbolTable,
     subroutineSymbolTable,
+    subroutineKind,
     print,
     printVm,
   );
@@ -85,6 +90,7 @@ const _handleSubroutineBody = (
   indentLevel: number,
   classSymbolTable: ClassSymbolTable,
   subroutineSymbolTable: SubroutineSymbolTable,
+  subroutineKind: SubroutineKind,
   print: (xml: string) => void,
   printVm: (vm: string) => void,
 ): number => {
@@ -113,6 +119,13 @@ const _handleSubroutineBody = (
       varDecResult.totalVarDecs,
     ),
   );
+
+  if (subroutineKind === 'constructor') {
+    const fieldCount = classSymbolTable.varCount('field');
+    printVm(vmWriter.writePush('constant', fieldCount));
+    printVm(vmWriter.writeCall('Memory.alloc', 1));
+    printVm(vmWriter.writePop('pointer', 0));
+  }
 
   const { value } = parseSingleLineXml(xmls[_cursor]);
 

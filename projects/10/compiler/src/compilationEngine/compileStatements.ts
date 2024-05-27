@@ -75,13 +75,18 @@ const _handleStatements = (
         printVm,
       );
       // the results of the expression are on the stack
-      const indexOfIdentifier = subroutineSymbolTable.indexOf(identifier);
-      printVm(
-        vmWriter.writePop(
-          subroutineSymbolTable.kindOf(identifier) === 'var' ? 'local' : 'argument',
-          indexOfIdentifier,
-        ),
-      );
+      try {
+        const indexOfIdentifier = subroutineSymbolTable.indexOf(identifier);
+        printVm(
+          vmWriter.writePop(
+            subroutineSymbolTable.kindOf(identifier) === 'var' ? 'local' : 'argument',
+            indexOfIdentifier,
+          ),
+        );
+      } catch (e) {
+        const indexOfIdentifier = classSymbolTable.indexOf(identifier);
+        printVm(vmWriter.writePop('this', indexOfIdentifier));
+      }
 
       print(indentation(xmls[_cursor++], indentLevel)); // ;
 
@@ -212,6 +217,10 @@ const _handleStatements = (
         print(indentation(xmls[_cursor++], indentLevel));
         identifier += parseSingleLineXml(xmls[_cursor]).value;
         print(indentation(xmls[_cursor++], indentLevel));
+      } else {
+        identifier = classSymbolTable.className + '.' + identifier;
+        printVm(vmWriter.writePush('pointer', 0));
+        isObject = true;
       }
 
       print(indentation(xmls[_cursor++], indentLevel)); // parenthesis open
