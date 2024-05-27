@@ -127,6 +127,11 @@ const _handleSubroutineBody = (
     printVm(vmWriter.writePop('pointer', 0));
   }
 
+  if (subroutineKind === 'method') {
+    printVm(vmWriter.writePush('argument', 0));
+    printVm(vmWriter.writePop('pointer', 0));
+  }
+
   const { value } = parseSingleLineXml(xmls[_cursor]);
 
   if (['let', 'if', 'while', 'do', 'return'].includes(value)) {
