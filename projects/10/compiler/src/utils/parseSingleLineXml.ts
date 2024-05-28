@@ -9,9 +9,9 @@ export const parseSingleLineXml = (xml: string): SingleLineXml => {
 
   const tag = xml.slice(tagStart + 1, tagEnd);
 
-  const closeTatStart = xml.indexOf('</');
+  const closeTagStart = xml.indexOf('</');
 
-  const value = xml.slice(tagEnd + 1, closeTatStart).trim();
+  const value = xml.slice(tagEnd + 1, closeTagStart).slice(1, -1);
 
   return { tag, value };
 };
