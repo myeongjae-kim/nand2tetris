@@ -54,29 +54,29 @@ describe('SquareTest', () => {
       vmPath,
     );
   });
-  //
-  // it('should compile SquareGame.jack', async () => {
-  //   const jackPath = './test/res/11/Square/SquareGame.jack';
-  //   const tokenXmlPath = './test/res/11/Square/SquareGameT.xml';
-  //   const xmlPath = './test/res/11/Square/SquareGame.xml';
-  //   const vmPath = './test/res/11/Square/SquareGame.vm';
-  //   const expectedVmPath = './test/res/11/expected/Square/SquareGame.vm';
-  //
-  //   await fileTestTemplate(
-  //     async () => {
-  //       await jackAnalyzer(jackPath);
-  //       await compilationEngine({ tokenXmlPaths: [tokenXmlPath], printVmCode: true });
-  //
-  //       const [vm, expectedVm] = await Promise.all([
-  //         readFilePromise(vmPath),
-  //         readFilePromise(expectedVmPath),
-  //       ]);
-  //
-  //       expect(vm).toBe(expectedVm.trim().replace(/\r/g, ''));
-  //     },
-  //     tokenXmlPath,
-  //     xmlPath,
-  //     vmPath,
-  //   );
-  // });
+
+  it('should compile SquareGame.jack', async () => {
+    const jackPath = './test/res/11/Square/SquareGame.jack';
+    const tokenXmlPath = './test/res/11/Square/SquareGameT.xml';
+    const xmlPath = './test/res/11/Square/SquareGame.xml';
+    const vmPath = './test/res/11/Square/SquareGame.vm';
+    const expectedVmPath = './test/res/11/expected/Square/SquareGame.vm';
+
+    await fileTestTemplate(
+      async () => {
+        await jackAnalyzer(jackPath);
+        await compilationEngine({ tokenXmlPaths: [tokenXmlPath], printVmCode: true });
+
+        const [vm, expectedVm] = await Promise.all([
+          readFilePromise(vmPath),
+          readFilePromise(expectedVmPath),
+        ]);
+
+        expect(vm).toBe(expectedVm.trim().replace(/\r/g, ''));
+      },
+      tokenXmlPath,
+      xmlPath,
+      vmPath,
+    );
+  });
 });

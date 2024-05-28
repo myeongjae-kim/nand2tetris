@@ -210,11 +210,21 @@ const _handleStatements = (
           printVm(vmWriter.writePush('local', variableIndex));
           isObject = true;
         } catch (e) {
-          // identifier가 변수가 아닌 경우는 스태틱 메서드를 호출하는 경우다.
+          try {
+            const indexOfIdentifier = classSymbolTable.indexOf(identifier);
+            printVm(vmWriter.writePush('this', indexOfIdentifier));
+            isObject = true;
+          } catch (e) {
+            // identifier가 변수가 아닌 경우는 스태틱 메서드를 호출하는 경우다.
+          }
         }
 
         if (isObject) {
-          identifier = subroutineSymbolTable.typeOf(identifier);
+          try {
+            identifier = subroutineSymbolTable.typeOf(identifier);
+          } catch (e) {
+            identifier = classSymbolTable.typeOf(identifier);
+          }
         }
         identifier += parseSingleLineXml(xmls[_cursor]).value;
         print(indentation(xmls[_cursor++], indentLevel));
