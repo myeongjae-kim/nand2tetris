@@ -92,6 +92,16 @@ const _handleTerm = (
       let aValue = parseSingleLineXml(xmls[_cursor]).value;
       print(indentation(xmls[_cursor++], indentLevel));
 
+      if (tag === 'stringConstant') {
+        const stringConstant = parseSingleLineXml(xmls[_cursor - 1]).value;
+        printVm(vmWriter.writePush('constant', stringConstant.length));
+        printVm(vmWriter.writeCall('String.new', 1));
+        for (let i = 0; i < stringConstant.length; i++) {
+          printVm(vmWriter.writePush('constant', stringConstant.charCodeAt(i)));
+          printVm(vmWriter.writeCall('String.appendChar', 2));
+        }
+      }
+
       tag === 'integerConstant' &&
         printVm(vmWriter.writePush('constant', parseSingleLineXml(xmls[_cursor - 1]).value));
 
@@ -175,6 +185,7 @@ const _handleTerm = (
     );
 
     operator === '*' && printVm(vmWriter.writeCall('Math.multiply', 2));
+    operator === '/' && printVm(vmWriter.writeCall('Math.divide', 2));
     operator === '+' && printVm('add');
     operator === '-' && printVm('sub');
     operator === '&gt;' && printVm('gt');

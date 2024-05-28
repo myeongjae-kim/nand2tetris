@@ -63,6 +63,9 @@ const _handleStatements = (
           printVm,
         );
         print(indentation(xmls[_cursor++], indentLevel)); // ]
+
+        printVm(vmWriter.writePush('local', subroutineSymbolTable.indexOf(identifier)));
+        printVm(vmWriter.writeArithmetic('add'));
       }
       print(indentation(xmls[_cursor++], indentLevel)); // =
       _cursor += compileExpression(
