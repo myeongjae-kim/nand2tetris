@@ -52,7 +52,11 @@ const _handleStatements = (
 
       const identifier = parseSingleLineXml(xmls[_cursor]).value;
       print(indentation(xmls[_cursor++], indentLevel)); // identifier
+
+      let isArray = false;
       if (parseSingleLineXml(xmls[_cursor]).value === '[') {
+        isArray = true;
+
         print(indentation(xmls[_cursor++], indentLevel)); // [
         _cursor += compileExpression(
           xmls.slice(_cursor),
@@ -79,12 +83,20 @@ const _handleStatements = (
       // the results of the expression are on the stack
       try {
         const indexOfIdentifier = subroutineSymbolTable.indexOf(identifier);
-        printVm(
-          vmWriter.writePop(
-            subroutineSymbolTable.kindOf(identifier) === 'var' ? 'local' : 'argument',
-            indexOfIdentifier,
-          ),
-        );
+
+        if (isArray) {
+          printVm(vmWriter.writePop('temp', 0));
+          printVm(vmWriter.writePop('pointer', 1));
+          printVm(vmWriter.writePush('temp', 0));
+          printVm(vmWriter.writePop('that', 0));
+        } else {
+          printVm(
+            vmWriter.writePop(
+              subroutineSymbolTable.kindOf(identifier) === 'var' ? 'local' : 'argument',
+              indexOfIdentifier,
+            ),
+          );
+        }
       } catch (e) {
         const indexOfIdentifier = classSymbolTable.indexOf(identifier);
         printVm(vmWriter.writePop('this', indexOfIdentifier));
