@@ -114,6 +114,11 @@ const _handleTerm = (
         printVm(vmWriter.writePush('argument', indexOfIdentifier));
       }
 
+      if (tag === 'identifier' && classSymbolTable.kindOf(aValue) === 'field') {
+        const indexOfIdentifier = classSymbolTable.indexOf(aValue);
+        printVm(vmWriter.writePush('this', indexOfIdentifier));
+      }
+
       if (parseSingleLineXml(xmls[_cursor]).value === '.') {
         aValue += parseSingleLineXml(xmls[_cursor]).value;
         print(indentation(xmls[_cursor++], indentLevel));
@@ -173,6 +178,7 @@ const _handleTerm = (
     operator === '+' && printVm('add');
     operator === '-' && printVm('sub');
     operator === '&gt;' && printVm('gt');
+    operator === '&lt;' && printVm('lt');
     operator === '&amp;' && printVm('and');
     operator === '=' && printVm('eq');
   }
