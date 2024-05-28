@@ -24,8 +24,7 @@ export const compileStatements = (
   );
 };
 
-let currentWhileIndex = 0;
-let currentIfIndex = 0;
+const currentWhileIndex = 0;
 
 const _handleStatements = (
   xmls: string[],
@@ -112,10 +111,11 @@ const _handleStatements = (
       print(indentation(xmls[_cursor++], indentLevel));
       print(indentation('<statements>', indentLevel));
 
+      const currentIfIndex = subroutineSymbolTable.getBranchCount('if');
+      subroutineSymbolTable.increaseBranchCount('if');
       printVm(vmWriter.writeIf('IF_TRUE' + currentIfIndex));
       printVm(vmWriter.writeGoto('IF_FALSE' + currentIfIndex));
       printVm(vmWriter.writeLabel('IF_TRUE' + currentIfIndex));
-      currentIfIndex++;
       _cursor += compileStatements(
         xmls.slice(_cursor),
         indentLevel + 1,
@@ -124,7 +124,6 @@ const _handleStatements = (
         print,
         printVm,
       );
-      currentIfIndex--;
       print(indentation('</statements>', indentLevel));
       print(indentation(xmls[_cursor++], indentLevel));
 
@@ -138,7 +137,6 @@ const _handleStatements = (
         print(indentation(xmls[_cursor++], indentLevel)); // else
         print(indentation(xmls[_cursor++], indentLevel)); // {
         print(indentation('<statements>', indentLevel));
-        currentIfIndex++;
         _cursor += compileStatements(
           xmls.slice(_cursor),
           indentLevel + 1,
@@ -147,7 +145,6 @@ const _handleStatements = (
           print,
           printVm,
         );
-        currentIfIndex--;
         print(indentation('</statements>', indentLevel));
         print(indentation(xmls[_cursor++], indentLevel)); // }
         printVm(vmWriter.writeLabel('IF_END' + currentIfIndex));
@@ -161,6 +158,9 @@ const _handleStatements = (
       print(indentation('<whileStatement>', indentLevel - 1));
 
       print(indentation(nextXml, indentLevel)); // while
+      const currentWhileIndex = subroutineSymbolTable.getBranchCount('while');
+      subroutineSymbolTable.increaseBranchCount('while');
+
       printVm(vmWriter.writeLabel('WHILE_EXP' + currentWhileIndex));
       print(indentation(xmls[_cursor++], indentLevel)); // (
       _cursor += compileExpression(
@@ -177,7 +177,6 @@ const _handleStatements = (
 
       print(indentation(xmls[_cursor++], indentLevel));
       print(indentation('<statements>', indentLevel));
-      currentWhileIndex++;
       _cursor += compileStatements(
         xmls.slice(_cursor),
         indentLevel + 1,
@@ -186,7 +185,6 @@ const _handleStatements = (
         print,
         printVm,
       );
-      --currentWhileIndex;
       print(indentation('</statements>', indentLevel));
       print(indentation(xmls[_cursor++], indentLevel));
 
