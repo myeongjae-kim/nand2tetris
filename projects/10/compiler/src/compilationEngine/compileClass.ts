@@ -4,7 +4,7 @@ import { compileClassVarDec } from './compileClassVarDec';
 import { compileSubroutineDec } from './compileSubroutineDec';
 import { ClassSymbolTable } from './model/ClassSymbolTable';
 import { SymbolKind } from './model/SymbolTable';
-import { isMethodKind } from './model/SubroutineKind';
+import { isSubroutineKind } from './model/SubroutineKind';
 
 export const compileClass = (
   xmls: string[],
@@ -66,7 +66,7 @@ const _compileClass = (
     );
   }
 
-  if (isMethodKind(value)) {
+  if (isSubroutineKind(value)) {
     cursor += compileSubroutineDec(
       xmls.slice(cursor),
       indentLevel + 1,

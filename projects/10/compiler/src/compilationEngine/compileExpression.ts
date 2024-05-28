@@ -144,6 +144,11 @@ const _handleTerm = (
           printVm(vmWriter.writePush('this', indexOfIdentifier));
         }
 
+        if (classSymbolTable.kindOf(aValue) === 'static') {
+          const indexOfIdentifier = classSymbolTable.indexOf(aValue);
+          printVm(vmWriter.writePush('static', indexOfIdentifier));
+        }
+
         if (isArray) {
           printVm(vmWriter.writeArithmetic('add'));
           printVm(vmWriter.writePop('pointer', 1));
@@ -151,7 +156,28 @@ const _handleTerm = (
         }
       }
 
+      let isObject = false;
       if (parseSingleLineXml(xmls[_cursor]).value === '.') {
+        try {
+          subroutineSymbolTable.indexOf(aValue);
+          isObject = true;
+        } catch (e) {
+          try {
+            classSymbolTable.indexOf(aValue);
+            isObject = true;
+          } catch (e) {
+            // identifier가 변수가 아닌 경우는 스태틱 메서드를 호출하는 경우다.
+          }
+        }
+
+        if (isObject) {
+          try {
+            aValue = subroutineSymbolTable.typeOf(aValue);
+          } catch (e) {
+            aValue = classSymbolTable.typeOf(aValue);
+          }
+        }
+
         aValue += parseSingleLineXml(xmls[_cursor]).value;
         print(indentation(xmls[_cursor++], indentLevel));
         aValue += parseSingleLineXml(xmls[_cursor]).value;
@@ -171,7 +197,7 @@ const _handleTerm = (
         _cursor += result.cursorProcessed;
         print(indentation(xmls[_cursor++], indentLevel)); // )
 
-        printVm(vmWriter.writeCall(aValue, result.totalExpressions));
+        printVm(vmWriter.writeCall(aValue, result.totalExpressions + (isObject ? 1 : 0)));
       }
 
       break;
@@ -201,6 +227,7 @@ const _handleTerm = (
     operator === '&gt;' && printVm('gt');
     operator === '&lt;' && printVm('lt');
     operator === '&amp;' && printVm('and');
+    operator === '|' && printVm('or');
     operator === '=' && printVm('eq');
   }
 

@@ -31,6 +31,9 @@ export const compileSubroutineDec = (
     parseSingleLineXml(subroutineNameXml).value,
   );
 
+  if (subroutineKind === 'method') {
+    subroutineSymbolTable.define('this', classSymbolTable.className, 'arg');
+  }
   cursor += compileParameterList(
     xmls.slice(cursor),
     indentLevel + 1,

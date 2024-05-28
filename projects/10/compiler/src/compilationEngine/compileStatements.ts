@@ -99,7 +99,12 @@ const _handleStatements = (
         }
       } catch (e) {
         const indexOfIdentifier = classSymbolTable.indexOf(identifier);
-        printVm(vmWriter.writePop('this', indexOfIdentifier));
+        const kind = classSymbolTable.kindOf(identifier);
+        if (!kind) {
+          throw new Error('Invalid identifier.');
+        }
+
+        printVm(vmWriter.writePop(kind === 'field' ? 'this' : 'static', indexOfIdentifier));
       }
 
       print(indentation(xmls[_cursor++], indentLevel)); // ;

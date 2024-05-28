@@ -49,4 +49,8 @@ export class SymbolTableImpl implements SymbolTable {
     }
     return symbol.index;
   }
+
+  incrementIndex(kind: SymbolKind): void {
+    this.indices[kind]++;
+  }
 }
