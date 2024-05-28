@@ -68,10 +68,6 @@ export type JackTokenizer = {
 };
 
 const isBlank = (line: string): boolean => {
-  if (line === undefined) {
-    console.log('here');
-  }
-
   return line.trim().length === 0;
 };
 

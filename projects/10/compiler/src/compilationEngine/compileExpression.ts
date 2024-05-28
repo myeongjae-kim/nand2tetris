@@ -114,19 +114,41 @@ const _handleTerm = (
         printVm(vmWriter.writePush('pointer', 0));
       }
 
-      if (tag === 'identifier' && subroutineSymbolTable.kindOf(aValue) === 'var') {
-        const indexOfIdentifier = subroutineSymbolTable.indexOf(aValue);
-        printVm(vmWriter.writePush('local', indexOfIdentifier));
-      }
+      if (tag === 'identifier') {
+        const isArray = parseSingleLineXml(xmls[_cursor]).value === '[';
+        if (isArray) {
+          print(indentation(xmls[_cursor++], indentLevel)); // [
+          _cursor += compileExpression(
+            xmls.slice(_cursor),
+            indentLevel + 1,
+            classSymbolTable,
+            subroutineSymbolTable,
+            print,
+            printVm,
+          );
+          print(indentation(xmls[_cursor++], indentLevel)); // ]
+        }
 
-      if (tag === 'identifier' && subroutineSymbolTable.kindOf(aValue) === 'arg') {
-        const indexOfIdentifier = subroutineSymbolTable.indexOf(aValue);
-        printVm(vmWriter.writePush('argument', indexOfIdentifier));
-      }
+        if (subroutineSymbolTable.kindOf(aValue) === 'var') {
+          const indexOfIdentifier = subroutineSymbolTable.indexOf(aValue);
+          printVm(vmWriter.writePush('local', indexOfIdentifier));
+        }
 
-      if (tag === 'identifier' && classSymbolTable.kindOf(aValue) === 'field') {
-        const indexOfIdentifier = classSymbolTable.indexOf(aValue);
-        printVm(vmWriter.writePush('this', indexOfIdentifier));
+        if (subroutineSymbolTable.kindOf(aValue) === 'arg') {
+          const indexOfIdentifier = subroutineSymbolTable.indexOf(aValue);
+          printVm(vmWriter.writePush('argument', indexOfIdentifier));
+        }
+
+        if (classSymbolTable.kindOf(aValue) === 'field') {
+          const indexOfIdentifier = classSymbolTable.indexOf(aValue);
+          printVm(vmWriter.writePush('this', indexOfIdentifier));
+        }
+
+        if (isArray) {
+          printVm(vmWriter.writeArithmetic('add'));
+          printVm(vmWriter.writePop('pointer', 1));
+          printVm(vmWriter.writePush('that', 0));
+        }
       }
 
       if (parseSingleLineXml(xmls[_cursor]).value === '.') {
@@ -152,18 +174,6 @@ const _handleTerm = (
         printVm(vmWriter.writeCall(aValue, result.totalExpressions));
       }
 
-      if (parseSingleLineXml(xmls[_cursor]).value === '[') {
-        print(indentation(xmls[_cursor++], indentLevel)); // [
-        _cursor += compileExpression(
-          xmls.slice(_cursor),
-          indentLevel + 1,
-          classSymbolTable,
-          subroutineSymbolTable,
-          print,
-          printVm,
-        );
-        print(indentation(xmls[_cursor++], indentLevel)); // ]
-      }
       break;
     }
     default:
