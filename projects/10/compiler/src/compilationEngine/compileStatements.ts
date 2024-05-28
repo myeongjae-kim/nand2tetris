@@ -128,10 +128,13 @@ const _handleStatements = (
       print(indentation('</statements>', indentLevel));
       print(indentation(xmls[_cursor++], indentLevel));
 
-      printVm(vmWriter.writeGoto('IF_END' + currentIfIndex));
+      const hasElse = parseSingleLineXml(xmls[_cursor]).value === 'else';
+      if (hasElse) {
+        printVm(vmWriter.writeGoto('IF_END' + currentIfIndex));
+      }
       printVm(vmWriter.writeLabel('IF_FALSE' + currentIfIndex));
 
-      if (parseSingleLineXml(xmls[_cursor]).value === 'else') {
+      if (hasElse) {
         print(indentation(xmls[_cursor++], indentLevel)); // else
         print(indentation(xmls[_cursor++], indentLevel)); // {
         print(indentation('<statements>', indentLevel));
@@ -147,10 +150,10 @@ const _handleStatements = (
         currentIfIndex--;
         print(indentation('</statements>', indentLevel));
         print(indentation(xmls[_cursor++], indentLevel)); // }
+        printVm(vmWriter.writeLabel('IF_END' + currentIfIndex));
       }
 
       print(indentation('</ifStatement>', indentLevel - 1));
-      printVm(vmWriter.writeLabel('IF_END' + currentIfIndex));
 
       break;
     }
