@@ -22,10 +22,6 @@ export const compilationEngine = async ({ tokenXmlPaths, printVmCode }: Args): P
 
       const vms: string[] = [];
       const printVm = (_vm: string) => {
-        if (_vm === 'call ball.move 0') {
-          console.log('here');
-        }
-
         vms.push(_vm);
       };
 

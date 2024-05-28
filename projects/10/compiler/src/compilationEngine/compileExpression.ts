@@ -105,7 +105,7 @@ const _handleTerm = (
       tag === 'integerConstant' &&
         printVm(vmWriter.writePush('constant', parseSingleLineXml(xmls[_cursor - 1]).value));
 
-      if (tag === 'keyword' && ['true', 'false'].includes(aValue)) {
+      if (tag === 'keyword' && ['true', 'false', 'null'].includes(aValue)) {
         printVm(vmWriter.writePush('constant', 0));
         aValue === 'true' && printVm('not');
       }

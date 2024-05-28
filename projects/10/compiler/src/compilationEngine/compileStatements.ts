@@ -68,7 +68,14 @@ const _handleStatements = (
         );
         print(indentation(xmls[_cursor++], indentLevel)); // ]
 
-        printVm(vmWriter.writePush('local', subroutineSymbolTable.indexOf(identifier)));
+        const identifierKind = subroutineSymbolTable.kindOf(identifier);
+
+        if (identifierKind === 'arg') {
+          printVm(vmWriter.writePush('argument', subroutineSymbolTable.indexOf(identifier)));
+        } else {
+          printVm(vmWriter.writePush('local', subroutineSymbolTable.indexOf(identifier)));
+        }
+
         printVm(vmWriter.writeArithmetic('add'));
       }
       print(indentation(xmls[_cursor++], indentLevel)); // =
